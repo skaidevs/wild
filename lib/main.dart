@@ -9,8 +9,9 @@ import 'package:getflutter/getflutter.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:rxdart/subjects.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
-import 'package:wildstream/providers/background.dart';
+import 'package:wildstream/helpers/background.dart';
 import 'package:wildstream/providers/hot100.dart';
 
 void main() => runApp(WildStreamApp());
@@ -103,7 +104,12 @@ class WildStreamHomePage extends StatefulWidget {
   _WildStreamHomePageState createState() => _WildStreamHomePageState();
 }
 
-class _WildStreamHomePageState extends State<WildStreamHomePage> {
+class _WildStreamHomePageState extends State<WildStreamHomePage>
+    with WidgetsBindingObserver {
+  /// Tracks the position while the user drags the seek bar.
+  final BehaviorSubject<double> _dragPositionSubject =
+      BehaviorSubject.seeded(null);
+
   SolidController _controller = SolidController();
   int _selectedIndex = 0;
   static const TextStyle optionStyle =
@@ -140,7 +146,16 @@ class _WildStreamHomePageState extends State<WildStreamHomePage> {
     Future.delayed(
       Duration.zero,
     ).then((_) async {
-      _fetchHot100Songs();
+      _fetchHot100Songs().then((mediaItems) async {
+        await _startPlayer();
+        mediaItems.forEach((media) async {
+          print("AudioService called");
+
+          await AudioService.addQueueItem(media);
+          print("AudioService called.....");
+          AudioService.play();
+        });
+      });
     });
   }
 
@@ -153,82 +168,219 @@ class _WildStreamHomePageState extends State<WildStreamHomePage> {
 
   @override
   void initState() {
+    this.connect();
     this._fetchData();
     super.initState();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
+    disconnect();
     super.dispose();
+  }
+
+  _startPlayer() async {
+    await AudioService.start(
+      backgroundTaskEntrypoint: _audioPlayerTaskEntryPoint,
+      androidNotificationChannelName: 'WildStream',
+      notificationColor: 0xFF2196f3,
+      androidNotificationIcon: 'mipmap/ic_launcher',
+      enableQueue: true,
+    );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        connect();
+        break;
+      case AppLifecycleState.paused:
+        disconnect();
+        break;
+      default:
+        break;
+    }
+  }
+
+  void connect() async {
+    await AudioService.connect();
+    print("AudioService.connect() ");
+  }
+
+  void disconnect() {
+    AudioService.disconnect();
+    print("AudioService.disconnect()");
   }
 
   @override
   Widget build(BuildContext context) {
+    BorderRadiusGeometry radius = BorderRadius.only(
+      topLeft: Radius.circular(10.0),
+      topRight: Radius.circular(10.0),
+    );
     return Scaffold(
+      appBar: AppBar(
+        title: Text('WildStream'),
+      ),
       backgroundColor: bg_color,
-      body: Padding(
-        padding: const EdgeInsets.only(bottom: 50.0),
-        child: ListView(
-          children: <Widget>[
-            Consumer<Hot100List>(
-              builder: (context, data, child) => ListView.separated(
-                padding: const EdgeInsets.all(2.0),
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                physics: ClampingScrollPhysics(),
-                separatorBuilder: (context, index) => const Divider(
-                  indent: 90.0,
-                  thickness: 0.6,
-                  endIndent: 10.0,
-                  color: Colors.white30,
-                ),
-                itemCount: data.hot100MediaList.length,
-                itemBuilder: (context, index) => ListTile(
-                  leading: GFAvatar(
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(6.0),
-                    ),
-                    shape: GFAvatarShape.standard,
-                    size: 42.0,
-                    backgroundImage:
-                        NetworkImage(data.hot100MediaList[index].artUri),
-                  ),
-                  title: Text(
-                    '${data.hot100MediaList[index].title}',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(
-                      top: 10.0,
-                    ),
-                    child: Text(
-                      '${data.hot100MediaList[index].artist}',
-                      style: TextStyle(color: kColorWSGreen),
-                    ),
-                  ),
-                  trailing: Icon(
-                    Icons.more_horiz,
-                    color: kColorWSGreen,
-                  ),
-                  onTap: () async {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        // Goes to new page and selects media item to play
-                        builder: (context) => PlayerScreen(
-                          selectedMedia: data.hot100MediaList,
+      body: SlidingUpPanel(
+        maxHeight: 700,
+        minHeight: 60.0,
+        panel: Center(
+          child: StreamBuilder<ScreenState>(
+            stream: _screenStateStream,
+            builder: (context, snapshot) {
+              final screenState = snapshot.data;
+              final queue = screenState?.queue;
+              final mediaItem = screenState?.mediaItem;
+              final state = screenState?.playbackState;
+              final basicState = state?.basicState ?? BasicPlaybackState.none;
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (mediaItem?.artUri != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 20.0),
+                      child: GFAvatar(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(6.0),
                         ),
+                        shape: GFAvatarShape.standard,
+                        size: 150.0,
+                        backgroundImage: NetworkImage(mediaItem.artUri),
                       ),
-                    );
-                  },
-                  selected: true,
+                    ),
+                  if (queue != null && queue.isNotEmpty)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.skip_previous),
+                          iconSize: 64.0,
+                          onPressed: mediaItem == queue.first
+                              ? null
+                              : AudioService.skipToPrevious,
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.skip_next),
+                          iconSize: 64.0,
+                          onPressed: mediaItem == queue.last
+                              ? null
+                              : AudioService.skipToNext,
+                        ),
+                      ],
+                    ),
+                  if (mediaItem?.title != null) Text(mediaItem.title),
+                  if (basicState == BasicPlaybackState.none) ...[
+                    Text('BasicPlaybackState.none # $basicState')
+                  ] else
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (basicState == BasicPlaybackState.playing)
+                          pauseButton()
+                        else if (basicState == BasicPlaybackState.paused)
+                          playButton()
+                        else if (basicState == BasicPlaybackState.buffering ||
+                            basicState == BasicPlaybackState.skippingToNext ||
+                            basicState == BasicPlaybackState.skippingToPrevious)
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SizedBox(
+                              width: 64.0,
+                              height: 64.0,
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                        stopButton(),
+                      ],
+                    ),
+                  if (basicState != BasicPlaybackState.none &&
+                      basicState != BasicPlaybackState.stopped) ...[
+                    positionIndicator(mediaItem, state),
+                    Text("State: " +
+                        "$basicState".replaceAll(RegExp(r'^.*\.'), '')),
+                    StreamBuilder(
+                      stream: AudioService.customEventStream,
+                      builder: (context, snapshot) {
+                        return Text("custom event: ${snapshot.data}");
+                      },
+                    ),
+                  ],
+                ],
+              );
+            },
+          ),
+        ),
+        collapsed: Container(
+          decoration: BoxDecoration(
+            color: Colors.blueGrey,
+          ),
+          child: Center(
+            child: Text(
+              "PLAYER",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.only(bottom: 50.0),
+          child: ListView(
+            children: <Widget>[
+              Consumer<Hot100List>(
+                builder: (context, data, child) => ListView.separated(
+                  padding: const EdgeInsets.all(2.0),
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  physics: ClampingScrollPhysics(),
+                  separatorBuilder: (context, index) => const Divider(
+                    indent: 90.0,
+                    thickness: 0.6,
+                    endIndent: 10.0,
+                    color: Colors.white30,
+                  ),
+                  itemCount: data.hot100MediaList.length,
+                  itemBuilder: (context, index) => ListTile(
+                    leading: GFAvatar(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(6.0),
+                      ),
+                      shape: GFAvatarShape.standard,
+                      size: 42.0,
+                      backgroundImage:
+                          NetworkImage(data.hot100MediaList[index].artUri),
+                    ),
+                    title: Text(
+                      '${data.hot100MediaList[index].title}',
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(
+                        top: 10.0,
+                      ),
+                      child: Text(
+                        '${data.hot100MediaList[index].artist}',
+                        style: TextStyle(color: kColorWSGreen),
+                      ),
+                    ),
+                    trailing: Icon(
+                      Icons.more_horiz,
+                      color: kColorWSGreen,
+                    ),
+                    onTap: () async {
+                      print('List Taped!!!');
+                    },
+                    selected: true,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -250,175 +402,14 @@ class _WildStreamHomePageState extends State<WildStreamHomePage> {
         selectedItemColor: kColorWSGreen,
         onTap: _onItemTapped,
       ),
-      floatingActionButton: FloatingActionButton(
+      /* floatingActionButton: FloatingActionButton(
           child: Icon(Icons.stars),
           onPressed: () async {
             print("Item::::::list ${_queue.length}");
 //            final q = AudioService.queue;
 //            print("Seelected QUEITEM  ${q[0].title}");
             _controller.isOpened ? _controller.hide() : _controller.show();
-          }),
-    );
-  }
-}
-
-class PlayerScreen extends StatefulWidget {
-  final List<MediaItem> selectedMedia;
-
-  const PlayerScreen({Key key, this.selectedMedia}) : super(key: key);
-
-  @override
-  _PlayerScreenState createState() => _PlayerScreenState();
-}
-
-class _PlayerScreenState extends State<PlayerScreen>
-    with WidgetsBindingObserver {
-  /// Tracks the position while the user drags the seek bar.
-  final BehaviorSubject<double> _dragPositionSubject =
-      BehaviorSubject.seeded(null);
-
-  @override
-  void initState() {
-    startPlayer();
-    super.initState();
-  }
-
-  startPlayer() async {
-    connect();
-    AudioService.start(
-      backgroundTaskEntrypoint: _audioPlayerTaskEntrypoint,
-      androidNotificationChannelName: 'WildStream',
-      notificationColor: 0xFF2196f3,
-      androidNotificationIcon: 'mipmap/ic_launcher',
-      enableQueue: true,
-    );
-    widget.selectedMedia.forEach((media) async {
-      await AudioService.addQueueItem(media);
-    });
-  }
-
-  @override
-  void dispose() {
-    disconnect();
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    switch (state) {
-      case AppLifecycleState.resumed:
-        connect();
-        break;
-      case AppLifecycleState.paused:
-        disconnect();
-        break;
-      default:
-        break;
-    }
-  }
-
-  void connect() async {
-    await AudioService.connect();
-    print("AudioService.connect() ${AudioService.queue}");
-  }
-
-  void disconnect() {
-    AudioService.disconnect();
-    print("AudioService.disconnect() ");
-  }
-
-  @override
-  Widget build(BuildContext context) {
-//    print('Selected Media ${widget.selectedMedia}');
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('PLAYER'),
-      ),
-      body: Center(
-        child: StreamBuilder<ScreenState>(
-          stream: _screenStateStream,
-          builder: (context, snapshot) {
-            final screenState = snapshot.data;
-            final queue = screenState?.queue;
-            final mediaItem = screenState?.mediaItem;
-            final state = screenState?.playbackState;
-            final basicState = state?.basicState ?? BasicPlaybackState.none;
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (mediaItem?.artUri != null)
-                  GFAvatar(
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(6.0),
-                    ),
-                    shape: GFAvatarShape.standard,
-                    size: 150.0,
-                    backgroundImage: NetworkImage(mediaItem.artUri),
-                  ),
-                if (queue != null && queue.isNotEmpty)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.skip_previous),
-                        iconSize: 64.0,
-                        onPressed: mediaItem == queue.first
-                            ? null
-                            : AudioService.skipToPrevious,
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.skip_next),
-                        iconSize: 64.0,
-                        onPressed: mediaItem == queue.last
-                            ? null
-                            : AudioService.skipToNext,
-                      ),
-                    ],
-                  ),
-                if (mediaItem?.title != null) Text(mediaItem.title),
-                if (basicState == BasicPlaybackState.none) ...[
-                  Text("BasicPlaybackState.none")
-                ] else
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (basicState == BasicPlaybackState.playing)
-                        pauseButton()
-                      else if (basicState == BasicPlaybackState.paused)
-                        playButton()
-                      else if (basicState == BasicPlaybackState.buffering ||
-                          basicState == BasicPlaybackState.skippingToNext ||
-                          basicState == BasicPlaybackState.skippingToPrevious)
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SizedBox(
-                            width: 64.0,
-                            height: 64.0,
-                            child: CircularProgressIndicator(),
-                          ),
-                        ),
-                      stopButton(),
-                    ],
-                  ),
-                if (basicState != BasicPlaybackState.none &&
-                    basicState != BasicPlaybackState.stopped) ...[
-                  positionIndicator(mediaItem, state),
-                  Text("State: " +
-                      "$basicState".replaceAll(RegExp(r'^.*\.'), '')),
-                  StreamBuilder(
-                    stream: AudioService.customEventStream,
-                    builder: (context, snapshot) {
-                      return Text("custom event: ${snapshot.data}");
-                    },
-                  ),
-                ],
-              ],
-            );
-          },
-        ),
-      ),
+          }),*/
     );
   }
 
@@ -504,6 +495,6 @@ class ScreenState {
   ScreenState(this.queue, this.mediaItem, this.playbackState);
 }
 
-void _audioPlayerTaskEntrypoint() async {
+void _audioPlayerTaskEntryPoint() async {
   AudioServiceBackground.run(() => AudioPlayerTask());
 }
