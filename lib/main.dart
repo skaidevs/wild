@@ -4,13 +4,13 @@ import 'dart:math';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/getflutter.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 import 'package:wildstream/models/song.dart';
 import 'package:wildstream/providers/hot100.dart';
 
@@ -109,8 +109,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
   /// Tracks the position while the user drags the seek bar.
   final BehaviorSubject<double> _dragPositionSubject =
       BehaviorSubject.seeded(null);
-
-  SolidController _controller = SolidController();
+  bool _show = true;
   bool _isLoading = false;
   int _selectedIndex = 0;
   static const TextStyle optionStyle =
@@ -171,10 +170,21 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     super.initState();
   }
 
+  void showBottomBar() {
+    setState(() {
+      _show = true;
+    });
+  }
+
+  void hideBottomBar() {
+    setState(() {
+      _show = false;
+    });
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _controller.dispose();
     disconnect();
     super.dispose();
   }
@@ -211,13 +221,15 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
       topRight: Radius.circular(10.0),
     );
     return Scaffold(
-      appBar: AppBar(
-        title: Text('WildStream'),
-      ),
+//      appBar: AppBar(
+//        title: Text('WildStream'),
+//      ),
       backgroundColor: bg_color,
       body: SlidingUpPanel(
         controller: _pc,
-        maxHeight: 700,
+        onPanelOpened: hideBottomBar,
+        onPanelClosed: showBottomBar,
+        maxHeight: MediaQuery.of(context).size.height,
         minHeight: _isLoading ? 0.0 : 60.0,
         panel: Center(
           child: StreamBuilder<ScreenState>(
@@ -373,25 +385,37 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            title: Text('Home'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            title: Text('Search'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.playlist_play),
-            title: Text('PlayList'),
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: kColorWSGreen,
-        onTap: _onItemTapped,
-      ),
+      bottomNavigationBar: _show
+          ? BottomNavigationBar(
+              backgroundColor: bg_color,
+              currentIndex: 0, // this will be set when a new tab is tapped
+              items: [
+                BottomNavigationBarItem(
+                  icon: new Icon(
+                    Icons.home,
+                    color: kColorWSGreen,
+                  ),
+                  title: new Text('Home'),
+                ),
+                BottomNavigationBarItem(
+                  icon: new Icon(
+                    Icons.search,
+                    color: kColorWSGreen,
+                  ),
+                  title: new Text('Search'),
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(
+                    Icons.library_music,
+                    color: kColorWSGreen,
+                  ),
+                  title: Text(
+                    'Playlist',
+                  ),
+                )
+              ],
+            )
+          : null,
       /* floatingActionButton: FloatingActionButton(
           child: Icon(Icons.stars),
           onPressed: () async {
