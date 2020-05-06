@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
+import 'package:wildstream/helpers/background.dart';
 import 'package:wildstream/models/song.dart';
 import 'package:wildstream/providers/hot100.dart';
 
@@ -165,9 +166,20 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
 
   @override
   void initState() {
-    this.connect();
+    this._startPlayer();
     this._fetchData();
     super.initState();
+  }
+
+  _startPlayer() async {
+    connect();
+    await AudioService.start(
+      backgroundTaskEntrypoint: _audioPlayerTaskEntryPoint,
+      androidNotificationChannelName: 'WildStream',
+      notificationColor: 0xFF2196f3,
+      androidNotificationIcon: 'mipmap/ic_launcher',
+      enableQueue: true,
+    );
   }
 
   void showBottomBar() {
@@ -213,6 +225,16 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     print("AudioService.disconnect()");
   }
 
+  _startAudioService() {
+    AudioService.start(
+      backgroundTaskEntrypoint: _audioPlayerTaskEntryPoint,
+      androidNotificationChannelName: 'Audio Service Demo',
+      notificationColor: 0xFF2196f3,
+      androidNotificationIcon: 'mipmap/ic_launcher',
+      enableQueue: true,
+    );
+  }
+
   PanelController _pc = PanelController();
   @override
   Widget build(BuildContext context) {
@@ -235,6 +257,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
           child: StreamBuilder<ScreenState>(
             stream: _screenStateStream,
             builder: (context, snapshot) {
+              print("StreamBuilder... ${snapshot?.data?.mediaItem?.duration}");
               final screenState = snapshot.data;
               final queue = screenState?.queue;
               final mediaItem = screenState?.mediaItem;
@@ -467,9 +490,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
 
     String _printDuration(Duration duration) {
       //NOTE: Does not account for days or anything greater than days
-
       // Duration duration = Duration(milliseconds: ms);
-
       String twoDigits(int n) {
         if (n >= 10) return "$n";
         return "0$n";
@@ -479,7 +500,6 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
       String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
       // logger.log();
 //      print("Duration $twoDigitMinutes:$twoDigitSeconds");
-
       if (duration.inHours == 0) return "$twoDigitMinutes:$twoDigitSeconds";
       return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
     }
@@ -487,7 +507,9 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     return StreamBuilder(
       stream: Rx.combineLatest2<double, double, double>(
           _dragPositionSubject.stream,
-          Stream.periodic(Duration(milliseconds: 200)),
+          Stream.periodic(
+            Duration(milliseconds: 200),
+          ),
           (dragPosition, _) => dragPosition),
       builder: (context, snapshot) {
         double position = snapshot.data ?? state.currentPosition.toDouble();
@@ -497,13 +519,8 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
             if (duration != null)
               Slider(
                 min: 0.0,
-                max: duration,
-                value: seekPos ??
-                    max(
-                      0.0,
-                      min(position, duration),
-                    ),
-                activeColor: kColorWSGreen,
+                max: duration * 1000,
+                value: seekPos ?? max(0.0, min(position, duration * 1000)),
                 onChanged: (value) {
                   _dragPositionSubject.add(value);
                 },
@@ -516,10 +533,11 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                   // comes through.
                   // TODO: Improve this code.
                   seekPos = value;
+                  print("onChangeEnd Value $seekPos");
                   _dragPositionSubject.add(null);
                 },
               ),
-            Text("${(state.currentPosition / 10000).toStringAsFixed(2)}"),
+            Text("${(state.currentPosition / 1000).toStringAsFixed(3)}"),
             Padding(
               padding: const EdgeInsets.fromLTRB(25, 0, 20, 0),
               child: Container(
@@ -533,27 +551,24 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                               ? _dragPositionSubject.value.toInt()
                               : state.currentPosition),
                     )}",
-                    // "${(state.currentPosition / 1000).toStringAsFixed(3)}",
                     style: TextStyle(
                       fontWeight: FontWeight.w300,
                       fontSize: 12,
                     ),
                   ),
 
-                  Spacer(), // use Spacer
+                  Spacer(), //
+                  // Value below was originally mediaItem?.duration? (check if this causes errors)
+                  //Shows duration of slider or actual playback state duration - current plackback state position
                   Text(
-                    // Value below was originally mediaItem?.duration? (check if this causes errors)
-                    //Shows duration of slider or actual playback state duration - current plackback state position
-                    "-${_printDuration(
-                      _dragPositionSubject.value != null
-                          ? Duration(milliseconds: mediaItem?.duration) -
-                              Duration(
-                                milliseconds: state.currentPosition,
-                              )
-                          : Duration(milliseconds: state.currentPosition),
-                    )}",
-                    style: TextStyle(fontWeight: FontWeight.w300, fontSize: 12),
-                  ),
+                    mediaItem == null
+                        ? "00:00"
+                        : "${(mediaItem.duration / 60).toStringAsFixed(2)}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w300,
+                      fontSize: 12,
+                    ),
+                  ), // use Spacer
                 ]),
               ),
             ),
@@ -568,7 +583,9 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     return StreamBuilder(
       stream: Rx.combineLatest2<double, double, double>(
           _dragPositionSubject.stream,
-          Stream.periodic(Duration(milliseconds: 200)),
+          Stream.periodic(
+            Duration(milliseconds: 200),
+          ),
           (dragPosition, _) => dragPosition),
       builder: (context, snapshot) {
         double position = snapshot.data ?? state.currentPosition.toDouble();
@@ -578,8 +595,8 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
             if (duration != null)
               Slider(
                 min: 0.0,
-                max: duration,
-                value: seekPos ?? max(0.0, min(position, duration)),
+                max: duration * 1000,
+                value: seekPos ?? max(0.0, min(position, duration * 1000)),
                 onChanged: (value) {
                   _dragPositionSubject.add(value);
                 },
@@ -592,15 +609,22 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                   // comes through.
                   // TODO: Improve this code.
                   seekPos = value;
+                  print("onChangeEnd Value $seekPos");
                   _dragPositionSubject.add(null);
                 },
               ),
-            Text("${(state.currentPosition / 10000).toStringAsFixed(2)}"),
+            Text("${(state.currentPosition / 1000).toStringAsFixed(3)}"),
+            Text(mediaItem == null
+                ? "00:00"
+                : "${(mediaItem.duration / 60).toStringAsFixed(2)}"),
           ],
         );
       },
-    );
-  }*/
+    );*/
+}
+
+void _audioPlayerTaskEntryPoint() async {
+  AudioServiceBackground.run(() => AudioPlayerTask());
 }
 
 class ScreenState {
