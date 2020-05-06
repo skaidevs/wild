@@ -80,7 +80,7 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
     var eventSubscription = _audioPlayer.playbackEventStream.listen((event) {
       final state = _eventToBasicState(event);
       if (state != BasicPlaybackState.stopped) {
-        print("eventSubscription... ${state.toString()}");
+        print("eventSubscription...  {{ ${state.toString()}");
 
         _setState(
           state: state,
@@ -96,8 +96,7 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
     _skipState = null;
     _playing = false;
     print("Afrer Code additions (for async issue)... $_skipState // $_playing");
-
-//    _setState(state: BasicPlaybackState.paused);
+    _setState(state: BasicPlaybackState.paused);
 //    await onSkipToNext();
     await _completer.future;
     playerStateSubscription.cancel();
@@ -108,11 +107,8 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
   void onAddQueueItem(MediaItem mediaItem) async {
 //    _queue.clear();
     _queue.add(mediaItem);
-    AudioServiceBackground.setQueue(_queue);
     print("onAddQueueItem } ${mediaItem.title}");
-    if (_queueIndex == -1) {
-      await onSkipToNext(); // your code will automatically play
-    }
+    await AudioServiceBackground.setQueue(_queue);
     super.onAddQueueItem(mediaItem);
   }
 
@@ -169,17 +165,17 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
   }
 
   @override
-  void onPlay() {
+  void onPlay() async {
     if (!_isReadyToPlay()) {
       // Nothing to play.
       return;
     }
-    if (_skipState == null) {
+    /*if (_skipState == null) {
       _playing = true;
       _audioPlayer.play();
       AudioServiceBackground.sendCustomEvent('just played');
-    }
-/*    if (_queueIndex == -1) {
+    }*/
+    if (_queueIndex == -1) {
       await onSkipToNext(); // your code will automatically play
     } else {
       // your normal play code
@@ -189,7 +185,7 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
         print('onPlay ... @ $_playing');
         AudioServiceBackground.sendCustomEvent('just played');
       }
-    }*/
+    }
   }
 
   @override
@@ -203,7 +199,10 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
 
   @override
   void onSeekTo(int position) {
-    _audioPlayer.seek(Duration(milliseconds: position));
+    print("Duratiom $position");
+    if (_audioPlayer != null) {
+      _audioPlayer.seek(Duration(milliseconds: position));
+    }
   }
 
   @override

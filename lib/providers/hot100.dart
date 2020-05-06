@@ -1,24 +1,26 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:wildstream/helpers/background.dart';
 import 'package:wildstream/models/song.dart';
 
 class Hot100List with ChangeNotifier {
-  List<MediaItem> _hot100MediaList = [];
+  List<Data> _hot100SongsList = [];
 
-  List<MediaItem> get hot100MediaList {
-    return [..._hot100MediaList];
+  List<Data> get hot100ListSongs {
+    return [..._hot100SongsList];
   }
 
-  Future<List<MediaItem>> loadHot100() async {
+  Future<Song> loadHot100() async {
     return _fetchHot100();
   }
 
-  Future<List<MediaItem>> _fetchHot100() async {
-    List<Data> _hot100SongList = [];
+  Future<Song> _fetchHot100() async {
+    List<MediaItem> _hot100MediaList = [];
     Song _hot100Songs;
 
     String token =
@@ -37,10 +39,11 @@ class Hot100List with ChangeNotifier {
       _hot100Songs = Song.fromJson(extractedData);
 
       if (_hot100Songs.name == 'Hot 100') {
-        _hot100SongList = _hot100Songs.data.toList();
-        if (_hot100MediaList.isEmpty) {
-          _hot100MediaList.clear();
-          _hot100SongList.forEach((mediaData) => {
+        _hot100SongsList = _hot100Songs.data.toList();
+        var _lastQueuedItems = AudioService.queue;
+        if (_hot100MediaList.isEmpty || _hot100MediaList == null) {
+//          _hot100MediaList.clear();
+          _hot100SongsList.forEach((mediaData) => {
                 _hot100MediaList.add(
                   MediaItem(
                     id: mediaData.songFile.songUrl,
@@ -52,18 +55,56 @@ class Hot100List with ChangeNotifier {
                   ),
                 ),
               });
+
+          print("AudioService.queue.... $_lastQueuedItems");
+          await _startPlayer();
+
+          if (Platform.isIOS) {
+            if (_lastQueuedItems == null) {
+              await AudioService.addQueueItems(_hot100MediaList);
+              print(
+                  "Platform.isIOS AudioService.addQueueItem Called ${_hot100MediaList.length}");
+              AudioService.play();
+            } else {
+              notifyListeners();
+              print(
+                  "Platform.isIOS _lastQueuedItems ${_lastQueuedItems.length}");
+              return _hot100Songs;
+            }
+          } else {
+            if (_lastQueuedItems.isEmpty) {
+              await AudioService.addQueueItems(_hot100MediaList);
+              print(
+                  "AudioService.addQueueItem Called ${_hot100MediaList.length}");
+              AudioService.play();
+            } else {
+              notifyListeners();
+              print("_lastQueuedItems ${_lastQueuedItems.length} ");
+              return _hot100Songs;
+            }
+          }
+
           notifyListeners();
-          print("Media Data ${_hot100MediaList.length}");
         }
       }
     } catch (error) {
       print("Error fetching Hot100 Songs $error");
     }
 
-    return _hot100MediaList;
+    return _hot100Songs;
   }
 
-  /////////////
+  _startPlayer() async {
+    await AudioService.start(
+      backgroundTaskEntrypoint: _audioPlayerTaskEntryPoint,
+      androidNotificationChannelName: 'WildStream',
+      notificationColor: 0xFF2196f3,
+      androidNotificationIcon: 'mipmap/ic_launcher',
+      enableQueue: true,
+    );
+  }
+
+/////////////
 
   /*int _queueIndex = -1;
   AudioPlayer _audioPlayer = new AudioPlayer();
@@ -236,4 +277,8 @@ class Hot100List with ChangeNotifier {
       ];
     }
   }*/
+}
+
+void _audioPlayerTaskEntryPoint() async {
+  AudioServiceBackground.run(() => AudioPlayerTask());
 }

@@ -11,7 +11,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
-import 'package:wildstream/helpers/background.dart';
+import 'package:wildstream/models/song.dart';
 import 'package:wildstream/providers/hot100.dart';
 
 void main() => runApp(WildStreamApp());
@@ -111,6 +111,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
       BehaviorSubject.seeded(null);
 
   SolidController _controller = SolidController();
+  bool _isLoading = false;
   int _selectedIndex = 0;
   static const TextStyle optionStyle =
       TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
@@ -133,7 +134,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     _selectedIndex = index;
   }
 
-  Future<List<MediaItem>> _fetchHot100Songs() async {
+  Future<Song> _fetchHot100Songs() async {
     return await Provider.of<Hot100List>(
       context,
       listen: false,
@@ -143,19 +144,16 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
   }
 
   void _fetchData() async {
+    _isLoading = true;
+//    if (_pc == null) {
+//      _pc.hide();
+//    }
     Future.delayed(
       Duration.zero,
     ).then((_) async {
-      _fetchHot100Songs().then((mediaItems) async {
-        await _startPlayer();
-        mediaItems.forEach((media) async {
-          print("AudioService called");
-
-          await AudioService.addQueueItem(media);
-          print("AudioService called.....");
-          AudioService.play();
-        });
-      });
+      _fetchHot100Songs().then(
+        (_) => setState(() => _isLoading = false),
+      );
     });
   }
 
@@ -179,16 +177,6 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     _controller.dispose();
     disconnect();
     super.dispose();
-  }
-
-  _startPlayer() async {
-    await AudioService.start(
-      backgroundTaskEntrypoint: _audioPlayerTaskEntryPoint,
-      androidNotificationChannelName: 'WildStream',
-      notificationColor: 0xFF2196f3,
-      androidNotificationIcon: 'mipmap/ic_launcher',
-      enableQueue: true,
-    );
   }
 
   @override
@@ -215,6 +203,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     print("AudioService.disconnect()");
   }
 
+  PanelController _pc = PanelController();
   @override
   Widget build(BuildContext context) {
     BorderRadiusGeometry radius = BorderRadius.only(
@@ -227,8 +216,9 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
       ),
       backgroundColor: bg_color,
       body: SlidingUpPanel(
+        controller: _pc,
         maxHeight: 700,
-        minHeight: 60.0,
+        minHeight: _isLoading ? 0.0 : 60.0,
         panel: Center(
           child: StreamBuilder<ScreenState>(
             stream: _screenStateStream,
@@ -342,7 +332,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                     endIndent: 10.0,
                     color: Colors.white30,
                   ),
-                  itemCount: data.hot100MediaList.length,
+                  itemCount: data.hot100ListSongs.length,
                   itemBuilder: (context, index) => ListTile(
                     leading: GFAvatar(
                       borderRadius: BorderRadius.all(
@@ -350,11 +340,11 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                       ),
                       shape: GFAvatarShape.standard,
                       size: 42.0,
-                      backgroundImage:
-                          NetworkImage(data.hot100MediaList[index].artUri),
+                      backgroundImage: NetworkImage(
+                          data.hot100ListSongs[index].songArt.artUrl),
                     ),
                     title: Text(
-                      '${data.hot100MediaList[index].title}',
+                      '${data.hot100ListSongs[index].name}',
                       style: TextStyle(
                         color: Colors.white,
                       ),
@@ -364,7 +354,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                         top: 10.0,
                       ),
                       child: Text(
-                        '${data.hot100MediaList[index].artist}',
+                        '${data.hot100ListSongs[index].artistsToString}',
                         style: TextStyle(color: kColorWSGreen),
                       ),
                     ),
@@ -449,6 +439,108 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
 
   Widget positionIndicator(MediaItem mediaItem, PlaybackState state) {
     double seekPos;
+    //TODO: Consider changing slider to also react to seekPos as well (to int can't be called on null)
+
+    String _printDuration(Duration duration) {
+      //NOTE: Does not account for days or anything greater than days
+
+      // Duration duration = Duration(milliseconds: ms);
+
+      String twoDigits(int n) {
+        if (n >= 10) return "$n";
+        return "0$n";
+      }
+
+      String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+      String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+      // logger.log();
+//      print("Duration $twoDigitMinutes:$twoDigitSeconds");
+
+      if (duration.inHours == 0) return "$twoDigitMinutes:$twoDigitSeconds";
+      return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+    }
+
+    return StreamBuilder(
+      stream: Rx.combineLatest2<double, double, double>(
+          _dragPositionSubject.stream,
+          Stream.periodic(Duration(milliseconds: 200)),
+          (dragPosition, _) => dragPosition),
+      builder: (context, snapshot) {
+        double position = snapshot.data ?? state.currentPosition.toDouble();
+        double duration = mediaItem?.duration?.toDouble();
+        return Column(
+          children: [
+            if (duration != null)
+              Slider(
+                min: 0.0,
+                max: duration,
+                value: seekPos ??
+                    max(
+                      0.0,
+                      min(position, duration),
+                    ),
+                activeColor: kColorWSGreen,
+                onChanged: (value) {
+                  _dragPositionSubject.add(value);
+                },
+                onChangeEnd: (value) {
+                  AudioService.seekTo(value.toInt());
+                  // Due to a delay in platform channel communication, there is
+                  // a brief moment after releasing the Slider thumb before the
+                  // new position is broadcast from the platform side. This
+                  // hack is to hold onto seekPos until the next state update
+                  // comes through.
+                  // TODO: Improve this code.
+                  seekPos = value;
+                  _dragPositionSubject.add(null);
+                },
+              ),
+            Text("${(state.currentPosition / 10000).toStringAsFixed(2)}"),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(25, 0, 20, 0),
+              child: Container(
+                transform: Matrix4.translationValues(0.0, -10.0, 0.0),
+                child: Row(children: <Widget>[
+                  Text(
+                    //Shows duration of slider or actual playback state duration
+                    "${_printDuration(
+                      Duration(
+                          milliseconds: _dragPositionSubject.value != null
+                              ? _dragPositionSubject.value.toInt()
+                              : state.currentPosition),
+                    )}",
+                    // "${(state.currentPosition / 1000).toStringAsFixed(3)}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w300,
+                      fontSize: 12,
+                    ),
+                  ),
+
+                  Spacer(), // use Spacer
+                  Text(
+                    // Value below was originally mediaItem?.duration? (check if this causes errors)
+                    //Shows duration of slider or actual playback state duration - current plackback state position
+                    "-${_printDuration(
+                      _dragPositionSubject.value != null
+                          ? Duration(milliseconds: mediaItem?.duration) -
+                              Duration(
+                                milliseconds: state.currentPosition,
+                              )
+                          : Duration(milliseconds: state.currentPosition),
+                    )}",
+                    style: TextStyle(fontWeight: FontWeight.w300, fontSize: 12),
+                  ),
+                ]),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /*Widget positionIndicator(MediaItem mediaItem, PlaybackState state) {
+    double seekPos;
     return StreamBuilder(
       stream: Rx.combineLatest2<double, double, double>(
           _dragPositionSubject.stream,
@@ -479,12 +571,12 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                   _dragPositionSubject.add(null);
                 },
               ),
-            Text("${(state.currentPosition / 1000).toStringAsFixed(3)}"),
+            Text("${(state.currentPosition / 10000).toStringAsFixed(2)}"),
           ],
         );
       },
     );
-  }
+  }*/
 }
 
 class ScreenState {
@@ -493,8 +585,4 @@ class ScreenState {
   final PlaybackState playbackState;
 
   ScreenState(this.queue, this.mediaItem, this.playbackState);
-}
-
-void _audioPlayerTaskEntryPoint() async {
-  AudioServiceBackground.run(() => AudioPlayerTask());
 }
