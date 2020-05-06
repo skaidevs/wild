@@ -145,7 +145,7 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
   Future<void> onSkipToPrevious() => _skip(-1);
 
   Future<void> _skip(int offset) async {
-    //TODO: onPause() Befor going to next
+    //TODO: onPause() Before going to next
     final newPos = _queueIndex + offset;
     if (!(newPos >= 0 && newPos < _queue.length)) return;
     if (_playing == null) {
