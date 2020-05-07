@@ -208,11 +208,10 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
     if (state != AudioPlaybackState.none ||
         state != AudioPlaybackState.connecting) {
       if (_queueIndex == -1) {
-        print(
-            'await onSkipToNext(); // your code will automatically play Called');
-        await onSkipToNext(); // your code will automatically play
+        print('onSkipToNext() will automatically play ');
+        await onSkipToNext(); // will automatically play
       } else {
-        // your normal play code
+        // normal play code
         if (_skipState == null) {
           _playing = true;
           _audioPlayer.play();

@@ -155,7 +155,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
       _fetchHot100Songs().then((hot100MediaList) async {
         await _startPlayer();
         var _lastQueuedItems = AudioService.queue;
-        print("_lastQueuedItems ${_lastQueuedItems} ");
+        print("_lastQueuedItems $_lastQueuedItems");
 
         if (_lastQueuedItems == null || _lastQueuedItems.isEmpty) {
           print("addQueueItem from api ${hot100MediaList.length}");
@@ -165,7 +165,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
           print("length is Not 0 ${_lastQueuedItems.length} ");
           return;
         }
-        print("run afer satement addQueue from api ${hot100MediaList.length}");
+        print("run afer addQueue from api ${hot100MediaList.length}");
       }).then(
         (_) => setState(() => _isLoading = false),
       );
@@ -255,15 +255,6 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
   PanelController _pc = PanelController();
   @override
   Widget build(BuildContext context) {
-    final _mediaList = Provider.of<Hot100List>(
-      context,
-      listen: false,
-    ).hot100MediaList;
-
-    MediaItem findMediaById(String mediaId) {
-      return _mediaList.firstWhere((media) => media.id == mediaId);
-    }
-
     BorderRadiusGeometry radius = BorderRadius.only(
       topLeft: Radius.circular(10.0),
       topRight: Radius.circular(10.0),
@@ -371,24 +362,6 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                       ],
                     )
                   : Center(child: CircularProgressIndicator());
-
-              /*if (snapshot.hasData) {
-                print("StreamBuilder  / $mediaItem / $state / $basicState");
-
-              } else if (snapshot.hasError) {
-                print("StreamBuilder.......... ${snapshot.hasError} ");
-                return Container(
-                  child: Text('HAS ERROR HANDLE IT...'),
-                );
-              } else if (snapshot.connectionState == ConnectionState.waiting) {
-                print("StreamBuilder.. CircularProgressIndicator() ");
-
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-
-              return Container();*/
             },
           ),
         ),
@@ -616,7 +589,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                   Spacer(), //
                   Text(
                     // Value below was originally mediaItem?.duration? (check if this causes errors)
-                    //Shows duration of slider or actual playback state duration - current plackback state position
+                    //Shows duration of slider or actual playback state duration - current playBack state position
                     mediaItem == null
                         ? "-00:00"
                         : "-${_printDuration(
@@ -643,50 +616,6 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
       },
     );
   }
-
-  /*Widget positionIndicator(MediaItem mediaItem, PlaybackState state) {
-    double seekPos;
-    return StreamBuilder(
-      stream: Rx.combineLatest2<double, double, double>(
-          _dragPositionSubject.stream,
-          Stream.periodic(
-            Duration(milliseconds: 200),
-          ),
-          (dragPosition, _) => dragPosition),
-      builder: (context, snapshot) {
-        double position = snapshot.data ?? state.currentPosition.toDouble();
-        double duration = mediaItem?.duration?.toDouble();
-        return Column(
-          children: [
-            if (duration != null)
-              Slider(
-                min: 0.0,
-                max: duration * 1000,
-                value: seekPos ?? max(0.0, min(position, duration * 1000)),
-                onChanged: (value) {
-                  _dragPositionSubject.add(value);
-                },
-                onChangeEnd: (value) {
-                  AudioService.seekTo(value.toInt());
-                  // Due to a delay in platform channel communication, there is
-                  // a brief moment after releasing the Slider thumb before the
-                  // new position is broadcast from the platform side. This
-                  // hack is to hold onto seekPos until the next state update
-                  // comes through.
-                  // TODO: Improve this code.
-                  seekPos = value;
-                  print("onChangeEnd Value $seekPos");
-                  _dragPositionSubject.add(null);
-                },
-              ),
-            Text("${(state.currentPosition / 1000).toStringAsFixed(3)}"),
-            Text(mediaItem == null
-                ? "00:00"
-                : "${(mediaItem.duration / 60).toStringAsFixed(2)}"),
-          ],
-        );
-      },
-    );*/
 }
 
 void _audioPlayerTaskEntryPoint() async {
