@@ -70,6 +70,7 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
 
   @override
   Future<void> onStart() async {
+    print("onStart called ");
     var playerStateSubscription = _audioPlayer.playbackStateStream
         .where((state) => state == AudioPlaybackState.completed)
         .listen((state) {
@@ -81,7 +82,6 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
       final state = _eventToBasicState(event);
       if (state != BasicPlaybackState.stopped) {
         print("eventSubscription...  {{ ${state.toString()}");
-
         _setState(
           state: state,
           position: event.position.inMilliseconds,
@@ -90,12 +90,16 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
     });
 
     print("onStart $_queue");
+
     //Code additions (for async issue)
     _skipState = null;
     _playing = false;
     _setState(state: BasicPlaybackState.paused);
+    print('_setState(state: BasicPlaybackState.paused..');
 
     await _completer.future;
+    print('dispose Called..... $playerStateSubscription');
+
     playerStateSubscription.cancel();
     eventSubscription.cancel();
   }
@@ -111,9 +115,15 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
   @override
   void onPlayFromMediaId(String mediaId) async {
     // play the item at mediaItems[mediaId]
-    // await _audioPlayer.setUrl(mediaId);
-    print("onPlayFromMediaId Called $mediaId");
-    _audioPlayer.play();
+//    AudioServiceBackground.setMediaItem(mediaItem);
+    await _audioPlayer.setUrl(mediaId);
+    onPlay();
+
+//    _queue[_queueIndex] = mediaItem;
+//    AudioServiceBackground.setQueue(_queue);
+//    _audioPlayer.play();
+
+    print("onPlayFromMediaId Called ${_queue[_queueIndex] = mediaItem}");
   }
 
   void _handlePlaybackCompleted() {
@@ -177,12 +187,12 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
       // Nothing to play.
       return;
     }
-    /*if (_skipState == null) {
+    if (_skipState == null) {
       _playing = true;
       _audioPlayer.play();
       AudioServiceBackground.sendCustomEvent('just played');
-    }*/
-    if (_queueIndex == -1) {
+    }
+    /*if (_queueIndex == -1) {
       await onSkipToNext(); // your code will automatically play
     } else {
       // your normal play code
@@ -192,7 +202,7 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
         print('onPlay ... @ $_playing');
         AudioServiceBackground.sendCustomEvent('just played');
       }
-    }
+    }*/
   }
 
   @override

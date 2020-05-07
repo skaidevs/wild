@@ -8,22 +8,20 @@ import 'package:http/http.dart' as http;
 import 'package:wildstream/models/song.dart';
 
 class Hot100List with ChangeNotifier {
-  List<Data> _hot100SongsList = [];
-
-  List<Data> get hot100ListSongs {
-    return [..._hot100SongsList];
+  List<MediaItem> _hot100MediaList = [];
+  List<MediaItem> get hot100MediaList {
+    return [..._hot100MediaList];
   }
 
-  Future<Song> loadHot100() async {
+  Future<List<MediaItem>> loadHot100() async {
     return _fetchHot100();
   }
 
-  Future<Song> _fetchHot100() async {
-    List<MediaItem> _hot100MediaList = [];
+  Future<List<MediaItem>> _fetchHot100() async {
+    List<Data> _hot100SongsList = [];
     Song _hot100Songs;
-
     String token =
-        'aHOtlc4qu8WQmkBKQPX51GSepTGcHFqVRflQYeqLqDAjTELYkVZYHJIxDPfa6RC7ry2wVnMAlGMkmRB4psJz7s01m94cYaBf0QwKzrQ62Qmhts7lzXQ4hE9zWWocW0oIATYsHW3Vt6H4RkWsnVpTD4eYEM58mPTcoLGAahhdKHWS864LCNjj7lk2cbcFsr6qhUlDk4es';
+        'u8BC3Y6XaWGlplNldAljni4YHbiCSlsTKTteiGe4E9ibaN49rf5pcZRcDkz40zOky8oZeuDXYdRCj15rGbpp66ThucN8OAb735gbvnhEJNN6aSIz0ck0RjDzbjVmKZHan5pYUlriitSCNDDPWRYriumIB1R8HlPmVWO7IQ5k6TQNvEWSNduaMB7IuKHknbVPGqodBtlf';
     try {
       http.Response response = await http.get(
         Uri.encodeFull(
@@ -41,7 +39,6 @@ class Hot100List with ChangeNotifier {
         _hot100SongsList = _hot100Songs.data.toList();
         var _lastQueuedItems = AudioService.queue;
         if (_hot100MediaList.isEmpty || _hot100MediaList == null) {
-//          _hot100MediaList.clear();
           _hot100SongsList.forEach((mediaData) => {
                 _hot100MediaList.add(
                   MediaItem(
@@ -66,7 +63,7 @@ class Hot100List with ChangeNotifier {
               notifyListeners();
               print(
                   "Platform.isIOS _lastQueuedItems ${_lastQueuedItems.length}");
-              return _hot100Songs;
+              return _hot100MediaList;
             }
           } else {
             if (_lastQueuedItems.isEmpty) {
@@ -77,7 +74,7 @@ class Hot100List with ChangeNotifier {
             } else {
               notifyListeners();
               print("_lastQueuedItems ${_lastQueuedItems.length} ");
-              return _hot100Songs;
+              return _hot100MediaList;
             }
           }
 
@@ -88,6 +85,6 @@ class Hot100List with ChangeNotifier {
       print("Error fetching Hot100 Songs $error");
     }
 
-    return _hot100Songs;
+    return _hot100MediaList;
   }
 }

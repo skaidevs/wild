@@ -39,12 +39,18 @@ class Data with ChangeNotifier {
   });
 
   factory Data.fromJson(Map<dynamic, dynamic> parsedJson) {
+    int calculatedDuration(int duration) {
+      final _times = 1000;
+      final _newDuration = duration * _times;
+      return _newDuration;
+    }
+
     return Data(
       code: parsedJson['code'] as String,
       name: parsedJson['name'] as String,
       shortUrl: parsedJson['short_url'] as String,
       artistsToString: parsedJson['artists_to_string'] as String,
-      duration: parsedJson['duration'] as int,
+      duration: calculatedDuration(parsedJson['duration']),
       releasedAt: parsedJson['released_at'] as String,
       songFile: SongFile.fromJson(parsedJson['file']),
       songArt: SongArt.fromJson(parsedJson['song_art']),

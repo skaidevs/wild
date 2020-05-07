@@ -12,7 +12,6 @@ import 'package:rxdart/rxdart.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:wildstream/helpers/background.dart';
-import 'package:wildstream/models/song.dart';
 import 'package:wildstream/providers/hot100.dart';
 
 void main() => runApp(WildStreamApp());
@@ -134,7 +133,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     _selectedIndex = index;
   }
 
-  Future<Song> _fetchHot100Songs() async {
+  Future<List<MediaItem>> _fetchHot100Songs() async {
     return await Provider.of<Hot100List>(
       context,
       listen: false,
@@ -164,11 +163,11 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     }
   }
 
-  @override
   void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
     this._startPlayer();
     this._fetchData();
-    super.initState();
   }
 
   _startPlayer() async {
@@ -201,14 +200,25 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     super.dispose();
   }
 
+  AppLifecycleState _notification;
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    setState(() {
+      _notification = state;
+    });
+
+    print('didChangeAppLifecycleState called $_notification');
+
     switch (state) {
       case AppLifecycleState.resumed:
         connect();
+
+        print('AppLifecycleState.resumed called ${state.index}');
         break;
       case AppLifecycleState.paused:
         disconnect();
+        print('AppLifecycleState.paused called ${state.index}');
         break;
       default:
         break;
@@ -225,19 +235,18 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     print("AudioService.disconnect()");
   }
 
-  _startAudioService() {
-    AudioService.start(
-      backgroundTaskEntrypoint: _audioPlayerTaskEntryPoint,
-      androidNotificationChannelName: 'Audio Service Demo',
-      notificationColor: 0xFF2196f3,
-      androidNotificationIcon: 'mipmap/ic_launcher',
-      enableQueue: true,
-    );
-  }
-
   PanelController _pc = PanelController();
   @override
   Widget build(BuildContext context) {
+    final _mediaList = Provider.of<Hot100List>(
+      context,
+      listen: false,
+    ).hot100MediaList;
+
+    MediaItem findMediaById(String mediaId) {
+      return _mediaList.firstWhere((media) => media.id == mediaId);
+    }
+
     BorderRadiusGeometry radius = BorderRadius.only(
       topLeft: Radius.circular(10.0),
       topRight: Radius.circular(10.0),
@@ -257,86 +266,112 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
           child: StreamBuilder<ScreenState>(
             stream: _screenStateStream,
             builder: (context, snapshot) {
-              print("StreamBuilder... ${snapshot?.data?.mediaItem?.duration}");
               final screenState = snapshot.data;
               final queue = screenState?.queue;
               final mediaItem = screenState?.mediaItem;
               final state = screenState?.playbackState;
               final basicState = state?.basicState ?? BasicPlaybackState.none;
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (mediaItem?.artUri != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20.0),
-                      child: GFAvatar(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(6.0),
-                        ),
-                        shape: GFAvatarShape.standard,
-                        size: 150.0,
-                        backgroundImage: NetworkImage(mediaItem.artUri),
-                      ),
-                    ),
-                  if (queue != null && queue.isNotEmpty)
-                    Row(
+
+              if (snapshot.hasError)
+                print("ERROR On StreamBuilder ${snapshot.error}");
+
+              return snapshot.hasData
+                  ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        IconButton(
-                          icon: Icon(Icons.skip_previous),
-                          iconSize: 64.0,
-                          onPressed: mediaItem == queue.first
-                              ? null
-                              : AudioService.skipToPrevious,
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.skip_next),
-                          iconSize: 64.0,
-                          onPressed: mediaItem == queue.last
-                              ? null
-                              : AudioService.skipToNext,
-                        ),
-                      ],
-                    ),
-                  if (mediaItem?.title != null) Text(mediaItem.title),
-                  if (basicState == BasicPlaybackState.none) ...[
-                    Text('BasicPlaybackState.none # $basicState')
-                  ] else
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (basicState == BasicPlaybackState.playing)
-                          pauseButton()
-                        else if (basicState == BasicPlaybackState.paused)
-                          playButton()
-                        else if (basicState == BasicPlaybackState.buffering ||
-                            basicState == BasicPlaybackState.skippingToNext ||
-                            basicState == BasicPlaybackState.skippingToPrevious)
+                        if (mediaItem?.artUri != null)
                           Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: SizedBox(
-                              width: 64.0,
-                              height: 64.0,
-                              child: CircularProgressIndicator(),
+                            padding: const EdgeInsets.only(bottom: 20.0),
+                            child: GFAvatar(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(6.0),
+                              ),
+                              shape: GFAvatarShape.standard,
+                              size: 150.0,
+                              backgroundImage: NetworkImage(mediaItem.artUri),
                             ),
                           ),
-                        stopButton(),
+                        if (queue != null && queue.isNotEmpty)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.skip_previous),
+                                iconSize: 64.0,
+                                onPressed: mediaItem == queue.first
+                                    ? null
+                                    : AudioService.skipToPrevious,
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.skip_next),
+                                iconSize: 64.0,
+                                onPressed: mediaItem == queue.last
+                                    ? null
+                                    : AudioService.skipToNext,
+                              ),
+                            ],
+                          ),
+                        if (mediaItem?.title != null) Text(mediaItem.title),
+                        if (basicState == BasicPlaybackState.none) ...[
+                          Text('BasicPlaybackState.none # $basicState')
+                        ] else
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (basicState == BasicPlaybackState.playing)
+                                pauseButton()
+                              else if (basicState == BasicPlaybackState.paused)
+                                playButton()
+                              else if (basicState ==
+                                      BasicPlaybackState.buffering ||
+                                  basicState ==
+                                      BasicPlaybackState.skippingToNext ||
+                                  basicState ==
+                                      BasicPlaybackState.skippingToPrevious)
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: SizedBox(
+                                    width: 50.0,
+                                    height: 50.0,
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                ),
+                              stopButton(),
+                            ],
+                          ),
+                        if (basicState != BasicPlaybackState.none &&
+                            basicState != BasicPlaybackState.stopped) ...[
+                          positionIndicator(mediaItem, state),
+                          Text("State: " +
+                              "$basicState".replaceAll(RegExp(r'^.*\.'), '')),
+                          StreamBuilder(
+                            stream: AudioService.customEventStream,
+                            builder: (context, snapshot) {
+                              return Text("custom event: ${snapshot.data}");
+                            },
+                          ),
+                        ],
                       ],
-                    ),
-                  if (basicState != BasicPlaybackState.none &&
-                      basicState != BasicPlaybackState.stopped) ...[
-                    positionIndicator(mediaItem, state),
-                    Text("State: " +
-                        "$basicState".replaceAll(RegExp(r'^.*\.'), '')),
-                    StreamBuilder(
-                      stream: AudioService.customEventStream,
-                      builder: (context, snapshot) {
-                        return Text("custom event: ${snapshot.data}");
-                      },
-                    ),
-                  ],
-                ],
-              );
+                    )
+                  : Center(child: CircularProgressIndicator());
+
+              /*if (snapshot.hasData) {
+                print("StreamBuilder  / $mediaItem / $state / $basicState");
+
+              } else if (snapshot.hasError) {
+                print("StreamBuilder.......... ${snapshot.hasError} ");
+                return Container(
+                  child: Text('HAS ERROR HANDLE IT...'),
+                );
+              } else if (snapshot.connectionState == ConnectionState.waiting) {
+                print("StreamBuilder.. CircularProgressIndicator() ");
+
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+
+              return Container();*/
             },
           ),
         ),
@@ -367,7 +402,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                     endIndent: 10.0,
                     color: Colors.white30,
                   ),
-                  itemCount: data.hot100ListSongs.length,
+                  itemCount: data.hot100MediaList.length,
                   itemBuilder: (context, index) => ListTile(
                     leading: GFAvatar(
                       borderRadius: BorderRadius.all(
@@ -375,11 +410,11 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                       ),
                       shape: GFAvatarShape.standard,
                       size: 42.0,
-                      backgroundImage: NetworkImage(
-                          data.hot100ListSongs[index].songArt.artUrl),
+                      backgroundImage:
+                          NetworkImage(data.hot100MediaList[index].artUri),
                     ),
                     title: Text(
-                      '${data.hot100ListSongs[index].name}',
+                      '${data.hot100MediaList[index].title}',
                       style: TextStyle(
                         color: Colors.white,
                       ),
@@ -389,7 +424,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                         top: 10.0,
                       ),
                       child: Text(
-                        '${data.hot100ListSongs[index].artistsToString}',
+                        '${data.hot100MediaList[index].artist}',
                         style: TextStyle(color: kColorWSGreen),
                       ),
                     ),
@@ -398,7 +433,9 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                       color: kColorWSGreen,
                     ),
                     onTap: () async {
-                      print('List Taped!!!');
+                      AudioService.playFromMediaId(
+                          data.hot100MediaList[index].id);
+                      AudioService.play();
                     },
                     selected: true,
                   ),
@@ -507,9 +544,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     return StreamBuilder(
       stream: Rx.combineLatest2<double, double, double>(
           _dragPositionSubject.stream,
-          Stream.periodic(
-            Duration(milliseconds: 200),
-          ),
+          Stream.periodic(Duration(milliseconds: 200)),
           (dragPosition, _) => dragPosition),
       builder: (context, snapshot) {
         double position = snapshot.data ?? state.currentPosition.toDouble();
@@ -519,8 +554,8 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
             if (duration != null)
               Slider(
                 min: 0.0,
-                max: duration * 1000,
-                value: seekPos ?? max(0.0, min(position, duration * 1000)),
+                max: duration,
+                value: seekPos ?? max(0.0, min(position, duration)),
                 onChanged: (value) {
                   _dragPositionSubject.add(value);
                 },
@@ -533,7 +568,6 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                   // comes through.
                   // TODO: Improve this code.
                   seekPos = value;
-                  print("onChangeEnd Value $seekPos");
                   _dragPositionSubject.add(null);
                 },
               ),
@@ -558,12 +592,22 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                   ),
 
                   Spacer(), //
-                  // Value below was originally mediaItem?.duration? (check if this causes errors)
-                  //Shows duration of slider or actual playback state duration - current plackback state position
                   Text(
+                    // Value below was originally mediaItem?.duration? (check if this causes errors)
+                    //Shows duration of slider or actual playback state duration - current plackback state position
                     mediaItem == null
-                        ? "00:00"
-                        : "${(mediaItem.duration / 60).toStringAsFixed(2)}",
+                        ? "-00:00"
+                        : "-${_printDuration(
+                            _dragPositionSubject.value != null
+                                ? Duration(milliseconds: mediaItem?.duration) -
+                                    Duration(
+                                      milliseconds:
+                                          _dragPositionSubject.value.toInt(),
+                                    )
+                                : Duration(milliseconds: mediaItem?.duration) -
+                                    Duration(
+                                        milliseconds: state.currentPosition),
+                          )}",
                     style: TextStyle(
                       fontWeight: FontWeight.w300,
                       fontSize: 12,
