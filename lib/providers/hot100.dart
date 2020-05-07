@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
@@ -53,7 +52,7 @@ class Hot100List with ChangeNotifier {
               });
 
           print("AudioService.queue.... $_lastQueuedItems");
-          if (Platform.isIOS) {
+/*          if (Platform.isIOS) {
             if (_lastQueuedItems == null) {
               await AudioService.addQueueItems(_hot100MediaList);
               print(
@@ -70,13 +69,13 @@ class Hot100List with ChangeNotifier {
               await AudioService.addQueueItems(_hot100MediaList);
               print(
                   "AudioService.addQueueItem Called ${_hot100MediaList.length}");
-              AudioService.play();
+//              AudioService.play();
             } else {
               notifyListeners();
               print("_lastQueuedItems ${_lastQueuedItems.length} ");
               return _hot100MediaList;
             }
-          }
+          }*/
 
           notifyListeners();
         }

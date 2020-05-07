@@ -109,6 +109,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
   /// Tracks the position while the user drags the seek bar.
   final BehaviorSubject<double> _dragPositionSubject =
       BehaviorSubject.seeded(null);
+
   bool _show = true;
   bool _isLoading = false;
   int _selectedIndex = 0;
@@ -147,10 +148,25 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
 //    if (_pc == null) {
 //      _pc.hide();
 //    }
+
     Future.delayed(
       Duration.zero,
     ).then((_) async {
-      _fetchHot100Songs().then(
+      _fetchHot100Songs().then((hot100MediaList) async {
+        await _startPlayer();
+        var _lastQueuedItems = AudioService.queue;
+        print("_lastQueuedItems ${_lastQueuedItems} ");
+
+        if (_lastQueuedItems == null || _lastQueuedItems.isEmpty) {
+          print("addQueueItem from api ${hot100MediaList.length}");
+          await AudioService.addQueueItems(hot100MediaList);
+          AudioService.play();
+        } else {
+          print("length is Not 0 ${_lastQueuedItems.length} ");
+          return;
+        }
+        print("run afer satement addQueue from api ${hot100MediaList.length}");
+      }).then(
         (_) => setState(() => _isLoading = false),
       );
     });
@@ -165,17 +181,18 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
 
   void initState() {
     super.initState();
+    connect();
     WidgetsBinding.instance.addObserver(this);
-    this._startPlayer();
+//    this._startPlayer();
     this._fetchData();
   }
 
   _startPlayer() async {
-    connect();
+//    connect();
     await AudioService.start(
       backgroundTaskEntrypoint: _audioPlayerTaskEntryPoint,
       androidNotificationChannelName: 'WildStream',
-      notificationColor: 0xFF2196f3,
+      notificationColor: 0xFF0A0A0A,
       androidNotificationIcon: 'mipmap/ic_launcher',
       enableQueue: true,
     );
@@ -435,7 +452,12 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                     onTap: () async {
                       AudioService.playFromMediaId(
                           data.hot100MediaList[index].id);
-                      AudioService.play();
+                      print(
+                          "addQueueItem UI ${data.hot100MediaList[index].title}");
+
+//                      await _startPlayer();
+////                      AudioService.addQueueItems(data.hot100MediaList);
+//                      AudioService.play();
                     },
                     selected: true,
                   ),
