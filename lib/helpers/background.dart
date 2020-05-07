@@ -115,13 +115,13 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
   @override
   void onPlayFromMediaId(String mediaId) async {
     // play the item at mediaItems[mediaId]
-//    AudioServiceBackground.setMediaItem(mediaItem);
+    AudioServiceBackground.setMediaItem(mediaItem);
     await _audioPlayer.setUrl(mediaId);
-    onPlay();
+//     onPlay();
 
 //    _queue[_queueIndex] = mediaItem;
 //    AudioServiceBackground.setQueue(_queue);
-//    _audioPlayer.play();
+    _audioPlayer.play();
 
     print("onPlayFromMediaId Called ${_queue[_queueIndex] = mediaItem}");
   }
@@ -187,12 +187,12 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
       // Nothing to play.
       return;
     }
-    if (_skipState == null) {
+    /*if (_skipState == null) {
       _playing = true;
       _audioPlayer.play();
       AudioServiceBackground.sendCustomEvent('just played');
-    }
-    /*if (_queueIndex == -1) {
+    }*/
+    if (_queueIndex == -1) {
       await onSkipToNext(); // your code will automatically play
     } else {
       // your normal play code
@@ -202,7 +202,7 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
         print('onPlay ... @ $_playing');
         AudioServiceBackground.sendCustomEvent('just played');
       }
-    }*/
+    }
   }
 
   @override
