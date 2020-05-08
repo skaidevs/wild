@@ -89,7 +89,7 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
         print("eventSubscription...  {{ ${state.toString()}");
         _setState(
           state: state,
-          position: event.position.inMilliseconds,
+          position: state.index ?? event.position.inMilliseconds,
         );
       }
     });
@@ -120,24 +120,18 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
   @override
   void onPlayFromMediaId(String mediaId) async {
     // play the item at mediaItems[mediaId]
-
     if (_playing == false) {
       _playing = true;
       print("onPlayFromMediaId  $_playing ?");
     }
     print("onPlayFromMediaId Called.. $_playing");
-
     var mediaItem = findMediaById(mediaId: mediaId);
-//    AudioServiceBackground.setMediaItem(mediaItem);
-    //      await _audioPlayer.setUrl(mediaId);
-//      AudioServiceBackground.setQueue(_queue);
     _platFromIdIndex = _queue.indexOf(mediaItem);
     print("index $_platFromIdIndex");
     _skip(_platFromIdIndex);
-    AudioServiceBackground.setQueue(_queue);
-
+//    AudioServiceBackground.setQueue(_queue);
     AudioServiceBackground.sendCustomEvent('onPlayFromMediaId @index');
-    print("run after _audioPlayer.playbackState ");
+    print("run after _skip(_platFromIdIndex)");
   }
 
   void _handlePlaybackCompleted() {
@@ -205,7 +199,9 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
         : BasicPlaybackState.skippingToPrevious;
     print("8 $offset");
     //TODO: onPause() Before going to next
+
 //    onPause();
+    print("onPause() Before going to next ${_skipState}");
     try {
       await _audioPlayer.setUrl(mediaItem.id);
     } catch (error) {

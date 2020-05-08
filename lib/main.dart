@@ -112,7 +112,11 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
 
   bool _show = true;
   bool _isLoading = false;
+  bool _isPlaying = false;
+  int _buildIndex = 0;
   int _selectedIndex = 0;
+
+  MediaItem mediaItem;
   static const TextStyle optionStyle =
       TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   static const List<Widget> _widgetOptions = <Widget>[
@@ -129,10 +133,6 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
       style: optionStyle,
     ),
   ];
-
-  void _onItemTapped(int index) {
-    _selectedIndex = index;
-  }
 
   Future<List<MediaItem>> _fetchHot100Songs() async {
     return await Provider.of<Hot100List>(
@@ -253,8 +253,21 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
   }
 
   PanelController _pc = PanelController();
+
+  Widget _mediaIndicator() {
+    return Icon(
+      Icons.library_music,
+      color: kColorWSGreen,
+    );
+  }
+
+  _onSelected(int index) {
+    setState(() => _selectedIndex = index);
+  }
+
   @override
   Widget build(BuildContext context) {
+    print("BUILD NUMBER ${_buildIndex++}");
     BorderRadiusGeometry radius = BorderRadius.only(
       topLeft: Radius.circular(10.0),
       topRight: Radius.circular(10.0),
@@ -276,7 +289,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
             builder: (context, snapshot) {
               final screenState = snapshot.data;
               final queue = screenState?.queue;
-              final mediaItem = screenState?.mediaItem;
+              mediaItem = screenState?.mediaItem;
               final state = screenState?.playbackState;
               final basicState = state?.basicState ?? BasicPlaybackState.none;
 
@@ -284,7 +297,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                 print("ERROR On StreamBuilder ${snapshot.error}");
 
               print(
-                  "Changes in UI ${queue?.length} || ${mediaItem?.title} ||-- ${state?.position}|| ${state?.currentPosition} || $basicState");
+                  "Changes in UI ${queue?.length} || ${mediaItem?.title} ||-- ${state?.position}|| || ${basicState.toString()}");
               return snapshot.hasData
                   ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -420,19 +433,25 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                         style: TextStyle(color: kColorWSGreen),
                       ),
                     ),
-                    trailing: Icon(
-                      Icons.more_horiz,
-                      color: kColorWSGreen,
-                    ),
+                    trailing: mediaItem?.id == data.hot100MediaList[index].id
+                        ? _mediaIndicator()
+                        : Icon(
+                            Icons.more_horiz,
+                            color: kColorWSGreen,
+                          ),
                     onTap: () async {
                       AudioService.playFromMediaId(
                           data.hot100MediaList[index].id);
-                      print(
-                          "addQueueItem UI ${data.hot100MediaList[index].title}");
+//                      setState(() {
+//                        mediaItem = data.hot100MediaList[index];
+//                      });
+                      print("addQueue UI ${data.hot100MediaList[index].title}");
+                      mediaItem = data.hot100MediaList[index];
 
-//                      await _startPlayer();
-////                      AudioService.addQueueItems(data.hot100MediaList);
-//                      AudioService.play();
+//                      _selectedIndex = 0;
+//                      _onSelected(index);
+//                      setState(() {
+//                      });
                     },
                     selected: true,
                   ),
