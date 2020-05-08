@@ -283,6 +283,8 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
               if (snapshot.hasError)
                 print("ERROR On StreamBuilder ${snapshot.error}");
 
+              print(
+                  "Changes in UI ${queue?.length} || ${mediaItem?.title} ||-- ${state?.position}|| ${state?.currentPosition} || $basicState");
               return snapshot.hasData
                   ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
