@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/getflutter.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +13,7 @@ import 'package:rxdart/subjects.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:wildstream/helpers/background.dart';
 import 'package:wildstream/providers/hot100.dart';
+import 'package:wildstream/widgets/positionIndicator.dart';
 
 void main() => runApp(WildStreamApp());
 
@@ -114,7 +115,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
   bool _isLoading = false;
   bool _isPlaying = false;
   int _buildIndex = 0;
-  int _selectedIndex = 0;
+  String _selectedIndex = '';
 
   MediaItem mediaItem;
   static const TextStyle optionStyle =
@@ -214,6 +215,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     disconnect();
+    _dragPositionSubject.close();
     super.dispose();
   }
 
@@ -254,14 +256,14 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
 
   PanelController _pc = PanelController();
 
-  Widget _mediaIndicator() {
-    return Icon(
-      Icons.library_music,
+  FaIcon _mediaIndicator() {
+    return FaIcon(
+      FontAwesomeIcons.volumeUp,
       color: kColorWSGreen,
     );
   }
 
-  _onSelected(int index) {
+  _onSelected(String index) {
     setState(() => _selectedIndex = index);
   }
 
@@ -283,102 +285,8 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
         onPanelClosed: showBottomBar,
         maxHeight: MediaQuery.of(context).size.height,
         minHeight: _isLoading ? 0.0 : 60.0,
-        panel: Center(
-          child: StreamBuilder<ScreenState>(
-            stream: _screenStateStream,
-            builder: (context, snapshot) {
-              final screenState = snapshot.data;
-              final queue = screenState?.queue;
-              mediaItem = screenState?.mediaItem;
-              final state = screenState?.playbackState;
-              final basicState = state?.basicState ?? BasicPlaybackState.none;
-
-              if (snapshot.hasError)
-                print("ERROR On StreamBuilder ${snapshot.error}");
-
-              print(
-                  "Changes in UI ${queue?.length} || ${mediaItem?.title} ||-- ${state?.position}|| || ${basicState.toString()}");
-              return snapshot.hasData
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (mediaItem?.artUri != null)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 20.0),
-                            child: GFAvatar(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(6.0),
-                              ),
-                              shape: GFAvatarShape.standard,
-                              size: 150.0,
-                              backgroundImage: NetworkImage(mediaItem.artUri),
-                            ),
-                          ),
-                        if (queue != null && queue.isNotEmpty)
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.skip_previous),
-                                iconSize: 64.0,
-                                onPressed: mediaItem == queue.first
-                                    ? null
-                                    : AudioService.skipToPrevious,
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.skip_next),
-                                iconSize: 64.0,
-                                onPressed: mediaItem == queue.last
-                                    ? null
-                                    : AudioService.skipToNext,
-                              ),
-                            ],
-                          ),
-                        if (mediaItem?.title != null) Text(mediaItem.title),
-                        if (basicState == BasicPlaybackState.none) ...[
-                          Text('BasicPlaybackState.none # $basicState')
-                        ] else
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (basicState == BasicPlaybackState.playing)
-                                pauseButton()
-                              else if (basicState == BasicPlaybackState.paused)
-                                playButton()
-                              else if (basicState ==
-                                      BasicPlaybackState.buffering ||
-                                  basicState ==
-                                      BasicPlaybackState.skippingToNext ||
-                                  basicState ==
-                                      BasicPlaybackState.skippingToPrevious)
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: SizedBox(
-                                    width: 50.0,
-                                    height: 50.0,
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                ),
-                              stopButton(),
-                            ],
-                          ),
-                        if (basicState != BasicPlaybackState.none &&
-                            basicState != BasicPlaybackState.stopped) ...[
-                          positionIndicator(mediaItem, state),
-                          Text("State: " +
-                              "$basicState".replaceAll(RegExp(r'^.*\.'), '')),
-                          StreamBuilder(
-                            stream: AudioService.customEventStream,
-                            builder: (context, snapshot) {
-                              return Text("custom event: ${snapshot.data}");
-                            },
-                          ),
-                        ],
-                      ],
-                    )
-                  : Center(child: CircularProgressIndicator());
-            },
-          ),
+        panel: PlayerStreamBuilder(
+          dragPositionSubject: _dragPositionSubject,
         ),
         collapsed: Container(
           decoration: BoxDecoration(
@@ -433,25 +341,26 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                         style: TextStyle(color: kColorWSGreen),
                       ),
                     ),
-                    trailing: mediaItem?.id == data.hot100MediaList[index].id
-                        ? _mediaIndicator()
-                        : Icon(
+                    trailing: StreamBuilder<ScreenState>(
+                      stream: _screenStateStream,
+                      builder: (context, snapshot) {
+                        final screenState = snapshot.data;
+                        mediaItem = screenState?.mediaItem;
+
+                        if (mediaItem?.id == data.hot100MediaList[index].id) {
+                          return _mediaIndicator();
+                        } else {
+                          return Icon(
                             Icons.more_horiz,
                             color: kColorWSGreen,
-                          ),
+                          );
+                        }
+                      },
+                    ),
                     onTap: () async {
                       AudioService.playFromMediaId(
                           data.hot100MediaList[index].id);
-//                      setState(() {
-//                        mediaItem = data.hot100MediaList[index];
-//                      });
-                      print("addQueue UI ${data.hot100MediaList[index].title}");
-                      mediaItem = data.hot100MediaList[index];
-
-//                      _selectedIndex = 0;
-//                      _onSelected(index);
-//                      setState(() {
-//                      });
+                      setState(() => mediaItem = data.hot100MediaList[index]);
                     },
                     selected: true,
                   ),
@@ -503,15 +412,156 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     );
   }
 
+//  Widget positionIndicator(MediaItem mediaItem, PlaybackState state) {
+//    return;
+//  }
+
+  Stream<ScreenState> get _screenStateStream =>
+      Rx.combineLatest2<List<MediaItem>, MediaItem, ScreenState>(
+        AudioService.queueStream,
+        AudioService.currentMediaItemStream,
+        (
+          queue,
+          mediaItem,
+        ) =>
+            ScreenState(
+          queue: queue,
+          mediaItem: mediaItem,
+        ),
+      );
+}
+
+void _audioPlayerTaskEntryPoint() async {
+  AudioServiceBackground.run(() => AudioPlayerTask());
+}
+
+class ScreenState {
+  final List<MediaItem> queue;
+  final MediaItem mediaItem;
+  final PlaybackState playbackState;
+
+  ScreenState({this.queue, this.mediaItem, this.playbackState});
+}
+
+class PlayerStreamBuilder extends StatelessWidget {
+  final BehaviorSubject<double> dragPositionSubject;
+
+  const PlayerStreamBuilder({
+    Key key,
+    this.dragPositionSubject,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<ScreenState>(
+      stream: _screenStateStream,
+      builder: (context, snapshot) {
+        final screenState = snapshot.data;
+        final queue = screenState?.queue;
+        final mediaItem = screenState?.mediaItem;
+        final state = screenState?.playbackState;
+        final basicState = state?.basicState ?? BasicPlaybackState.none;
+        if (snapshot.hasError)
+          print("ERROR On StreamBuilder ${snapshot.error}");
+        print(
+            "Changes in UI ${queue?.length} || ${mediaItem?.title} ||-- ${state?.position}|| || ${basicState.toString()}");
+        return snapshot.hasData
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (mediaItem?.artUri != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 20.0),
+                      child: GFAvatar(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(6.0),
+                        ),
+                        shape: GFAvatarShape.standard,
+                        size: 150.0,
+                        backgroundImage: NetworkImage(mediaItem.artUri),
+                      ),
+                    ),
+                  if (queue != null && queue.isNotEmpty)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.skip_previous),
+                          iconSize: 64.0,
+                          onPressed: mediaItem == queue.first
+                              ? null
+                              : AudioService.skipToPrevious,
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.skip_next),
+                          iconSize: 64.0,
+                          onPressed: mediaItem == queue.last
+                              ? null
+                              : AudioService.skipToNext,
+                        ),
+                      ],
+                    ),
+                  if (mediaItem?.title != null) Text(mediaItem.title),
+                  if (basicState == BasicPlaybackState.none) ...[
+                    Text('BasicPlaybackState.none # $basicState')
+                  ] else
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (basicState == BasicPlaybackState.playing)
+                          pauseButton()
+                        else if (basicState == BasicPlaybackState.paused)
+                          playButton()
+                        else if (basicState == BasicPlaybackState.buffering ||
+                            basicState == BasicPlaybackState.skippingToNext ||
+                            basicState == BasicPlaybackState.skippingToPrevious)
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SizedBox(
+                              width: 50.0,
+                              height: 50.0,
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                        stopButton(),
+                      ],
+                    ),
+                  if (basicState != BasicPlaybackState.none &&
+                      basicState != BasicPlaybackState.stopped) ...[
+                    PositionIndicator(
+                      dragPositionSubject: dragPositionSubject,
+                      mediaItem: mediaItem,
+                      state: state,
+                    ),
+                    Text("State: " +
+                        "$basicState".replaceAll(RegExp(r'^.*\.'), '')),
+                    StreamBuilder(
+                      stream: AudioService.customEventStream,
+                      builder: (context, snapshot) {
+                        return Text("custom event: ${snapshot.data}");
+                      },
+                    ),
+                  ],
+                ],
+              )
+            : Center(child: CircularProgressIndicator());
+      },
+    );
+  }
+
   /// Encapsulate all the different data we're interested in into a single
   /// stream so we don't have to nest StreamBuilders.
   Stream<ScreenState> get _screenStateStream =>
       Rx.combineLatest3<List<MediaItem>, MediaItem, PlaybackState, ScreenState>(
-          AudioService.queueStream,
-          AudioService.currentMediaItemStream,
-          AudioService.playbackStateStream,
-          (queue, mediaItem, playbackState) =>
-              ScreenState(queue, mediaItem, playbackState));
+        AudioService.queueStream,
+        AudioService.currentMediaItemStream,
+        AudioService.playbackStateStream,
+        (queue, mediaItem, playbackState) => ScreenState(
+          queue: queue,
+          mediaItem: mediaItem,
+          playbackState: playbackState,
+        ),
+      );
 
   RaisedButton startButton(String label, VoidCallback onPressed) =>
       RaisedButton(
@@ -536,117 +586,4 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
         iconSize: 64.0,
         onPressed: AudioService.stop,
       );
-
-  Widget positionIndicator(MediaItem mediaItem, PlaybackState state) {
-    double seekPos;
-    //TODO: Consider changing slider to also react to seekPos as well (to int can't be called on null)
-
-    String _printDuration(Duration duration) {
-      //NOTE: Does not account for days or anything greater than days
-      // Duration duration = Duration(milliseconds: ms);
-      String twoDigits(int n) {
-        if (n >= 10) return "$n";
-        return "0$n";
-      }
-
-      String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
-      String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-      // logger.log();
-//      print("Duration $twoDigitMinutes:$twoDigitSeconds");
-      if (duration.inHours == 0) return "$twoDigitMinutes:$twoDigitSeconds";
-      return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
-    }
-
-    return StreamBuilder(
-      stream: Rx.combineLatest2<double, double, double>(
-          _dragPositionSubject.stream,
-          Stream.periodic(Duration(milliseconds: 200)),
-          (dragPosition, _) => dragPosition),
-      builder: (context, snapshot) {
-        double position = snapshot.data ?? state.currentPosition.toDouble();
-        double duration = mediaItem?.duration?.toDouble();
-        return Column(
-          children: [
-            if (duration != null)
-              Slider(
-                min: 0.0,
-                max: duration,
-                value: seekPos ?? max(0.0, min(position, duration)),
-                onChanged: (value) {
-                  _dragPositionSubject.add(value);
-                },
-                onChangeEnd: (value) {
-                  AudioService.seekTo(value.toInt());
-                  // Due to a delay in platform channel communication, there is
-                  // a brief moment after releasing the Slider thumb before the
-                  // new position is broadcast from the platform side. This
-                  // hack is to hold onto seekPos until the next state update
-                  // comes through.
-                  // TODO: Improve this code.
-                  seekPos = value;
-                  _dragPositionSubject.add(null);
-                },
-              ),
-            Text("${(state.currentPosition / 1000).toStringAsFixed(3)}"),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(25, 0, 20, 0),
-              child: Container(
-                transform: Matrix4.translationValues(0.0, -10.0, 0.0),
-                child: Row(children: <Widget>[
-                  Text(
-                    //Shows duration of slider or actual playback state duration
-                    "${_printDuration(
-                      Duration(
-                          milliseconds: _dragPositionSubject.value != null
-                              ? _dragPositionSubject.value.toInt()
-                              : state.currentPosition),
-                    )}",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w300,
-                      fontSize: 12,
-                    ),
-                  ),
-
-                  Spacer(), //
-                  Text(
-                    // Value below was originally mediaItem?.duration? (check if this causes errors)
-                    //Shows duration of slider or actual playback state duration - current playBack state position
-                    mediaItem == null
-                        ? "-00:00"
-                        : "-${_printDuration(
-                            _dragPositionSubject.value != null
-                                ? Duration(milliseconds: mediaItem?.duration) -
-                                    Duration(
-                                      milliseconds:
-                                          _dragPositionSubject.value.toInt(),
-                                    )
-                                : Duration(milliseconds: mediaItem?.duration) -
-                                    Duration(
-                                        milliseconds: state.currentPosition),
-                          )}",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w300,
-                      fontSize: 12,
-                    ),
-                  ), // use Spacer
-                ]),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-void _audioPlayerTaskEntryPoint() async {
-  AudioServiceBackground.run(() => AudioPlayerTask());
-}
-
-class ScreenState {
-  final List<MediaItem> queue;
-  final MediaItem mediaItem;
-  final PlaybackState playbackState;
-
-  ScreenState(this.queue, this.mediaItem, this.playbackState);
 }

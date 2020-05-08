@@ -89,7 +89,7 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
         print("eventSubscription...  {{ ${state.toString()}");
         _setState(
           state: state,
-          position: state.index ?? event.position.inMilliseconds,
+          position: event.position.inMilliseconds,
         );
       }
     });
