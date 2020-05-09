@@ -92,6 +92,7 @@ class WildStreamApp extends StatelessWidget {
         title: 'Wildstrem',
         theme: ThemeData(
           brightness: Brightness.dark,
+          accentColorBrightness: Brightness.dark,
           backgroundColor: bg_color,
           primarySwatch: bg_color,
           primaryColor: Color(0XFF181818),
@@ -123,7 +124,6 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
   bool _isLoading = false;
   bool _isPlaying = false;
   int _buildIndex = 0;
-
   MediaItem mediaItem;
   static const TextStyle optionStyle =
       TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
@@ -272,7 +272,6 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
 
   @override
   Widget build(BuildContext context) {
-    final _media = Provider.of<Hot100List>(context, listen: false);
     print("BUILD NUMBER ${_buildIndex++}");
     BorderRadiusGeometry radius = BorderRadius.only(
       topLeft: Radius.circular(10.0),
@@ -282,7 +281,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
       /*appBar: AppBar(
         title: Text('WildStream'),
       ),*/
-      backgroundColor: bg_color,
+      backgroundColor: Theme.of(context).backgroundColor,
       body: SlidingUpPanel(
         controller: _pc,
         onPanelOpened: hideBottomBar,
@@ -292,67 +291,118 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
         panel: PlayerStreamBuilder(
           dragPositionSubject: _dragPositionSubject,
         ),
-        collapsed: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //TODO: Get Data from StreamBuilder to make it persistence
-            children: <Widget>[
-              Flexible(
-                child: Row(
-                  children: <Widget>[
-                    GFAvatar(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(6.0),
-                      ),
-                      shape: GFAvatarShape.standard,
-                      size: 30.0,
-                      backgroundImage: mediaItem == null
-                          ? AssetImage('assets/ws_white.png')
-                          : NetworkImage(mediaItem?.artUri),
+        collapsed: StreamBuilder<ScreenState>(
+          stream: _screenStateStream,
+          builder: (context, snapshot) {
+            final screenState = snapshot.data;
+            final mediaItem = screenState?.mediaItem;
+            final state = screenState?.playbackState;
+            final basicState = state?.basicState ?? BasicPlaybackState.none;
+            if (snapshot.hasError)
+              print("ERROR On StreamBuilder ${snapshot.error}");
+            print(
+                "Changes Mini player || ${mediaItem?.title} ||-- ${state?.position}|| || ${basicState.toString()}");
+
+            return snapshot.hasData
+                ? Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).backgroundColor,
                     ),
-                    SizedBox(
-                      width: 10.0,
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        //TODO: Get Data from StreamBuilder to make it persistence
                         children: <Widget>[
-                          Text(
-                            mediaItem == null
-                                ? "Wildstream"
-                                : '${mediaItem?.title}',
-                            overflow: TextOverflow.ellipsis,
-                            softWrap: true,
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: kColorWhite),
+                          Flexible(
+                            child: Row(
+                              children: <Widget>[
+                                GFAvatar(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(6.0),
+                                  ),
+                                  shape: GFAvatarShape.standard,
+                                  size: 30.0,
+                                  backgroundImage: mediaItem == null
+                                      ? AssetImage('assets/ws_white.png')
+                                      : NetworkImage(mediaItem?.artUri),
+                                ),
+                                SizedBox(
+                                  width: 10.0,
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      Text(
+                                        mediaItem == null
+                                            ? "Wildstream"
+                                            : '${mediaItem?.title}',
+                                        overflow: TextOverflow.ellipsis,
+                                        softWrap: true,
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            color: kColorWhite),
+                                      ),
+                                      SizedBox(height: 5),
+                                      Text(
+                                        mediaItem == null
+                                            ? "Stay connected to the plug"
+                                            : '${mediaItem?.artist}',
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            color:
+                                                Theme.of(context).accentColor),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          SizedBox(height: 5),
-                          Text(
-                            mediaItem == null
-                                ? "Stay connected to the plug"
-                                : '${mediaItem?.artist}',
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Theme.of(context).accentColor),
+                          SizedBox(
+                            width: 10.0,
                           ),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (basicState == BasicPlaybackState.playing)
+                                _pauseButton(context: context)
+                              else if (basicState == BasicPlaybackState.paused)
+                                _playButton(context: context)
+                              else if (basicState ==
+                                      BasicPlaybackState.buffering ||
+                                  basicState ==
+                                      BasicPlaybackState.skippingToNext ||
+                                  basicState ==
+                                      BasicPlaybackState.skippingToPrevious)
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: SizedBox(
+                                    width: 30.0,
+                                    height: 30.0,
+                                    child: GFLoader(
+                                      size: 30.0,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+//                        _playButton(context: context),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                width: 10.0,
-              ),
-              _playButton(context: context),
-            ],
-          ),
+                  )
+                : Center(
+                    child: CircularProgressIndicator(),
+                  );
+          },
         ),
         body: Padding(
           padding: const EdgeInsets.only(bottom: 50.0),
@@ -485,23 +535,27 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
   IconButton _pauseButton({BuildContext context}) => IconButton(
         icon: FaIcon(FontAwesomeIcons.pauseCircle),
         color: Theme.of(context).accentColor,
-        iconSize: 60.0,
+        iconSize: 30.0,
         onPressed: AudioService.pause,
       );
 
   /// Encapsulate all the different data we're interested in into a single
   /// stream so we don't have to nest StreamBuilders.
+  ///
   Stream<ScreenState> get _screenStateStream =>
-      Rx.combineLatest2<List<MediaItem>, MediaItem, ScreenState>(
+      Rx.combineLatest3<List<MediaItem>, MediaItem, PlaybackState, ScreenState>(
         AudioService.queueStream,
         AudioService.currentMediaItemStream,
+        AudioService.playbackStateStream,
         (
           queue,
           mediaItem,
+          playbackState,
         ) =>
             ScreenState(
           queue: queue,
           mediaItem: mediaItem,
+          playbackState: playbackState,
         ),
       );
 }

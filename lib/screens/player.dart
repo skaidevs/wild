@@ -21,8 +21,6 @@ class PlayerStreamBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double c_width = MediaQuery.of(context).size.width * 0.8;
-
     return Container(
       color: Theme.of(context).backgroundColor,
       child: StreamBuilder<ScreenState>(
@@ -35,8 +33,8 @@ class PlayerStreamBuilder extends StatelessWidget {
           final basicState = state?.basicState ?? BasicPlaybackState.none;
           if (snapshot.hasError)
             print("ERROR On StreamBuilder ${snapshot.error}");
-          print(
-              "Changes in UI ${queue?.length} || ${mediaItem?.title} ||-- ${state?.position}|| || ${basicState.toString()}");
+//          print(
+//              "Changes in UI ${queue?.length} || ${mediaItem?.title} ||-- ${state?.position}|| || ${basicState.toString()}");
           return snapshot.hasData
               ? Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -197,7 +195,12 @@ class PlayerStreamBuilder extends StatelessWidget {
         AudioService.queueStream,
         AudioService.currentMediaItemStream,
         AudioService.playbackStateStream,
-        (queue, mediaItem, playbackState) => ScreenState(
+        (
+          queue,
+          mediaItem,
+          playbackState,
+        ) =>
+            ScreenState(
           queue: queue,
           mediaItem: mediaItem,
           playbackState: playbackState,
