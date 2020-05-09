@@ -272,6 +272,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
 
   @override
   Widget build(BuildContext context) {
+    final _media = Provider.of<Hot100List>(context, listen: false);
     print("BUILD NUMBER ${_buildIndex++}");
     BorderRadiusGeometry radius = BorderRadius.only(
       topLeft: Radius.circular(10.0),
@@ -291,15 +292,66 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
         panel: PlayerStreamBuilder(
           dragPositionSubject: _dragPositionSubject,
         ),
-        collapsed: Container(
-          decoration: BoxDecoration(
-//            color: Colors,
+        collapsed: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //TODO: Get Data from StreamBuilder to make it persistence
+            children: <Widget>[
+              Flexible(
+                child: Row(
+                  children: <Widget>[
+                    GFAvatar(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(6.0),
+                      ),
+                      shape: GFAvatarShape.standard,
+                      size: 30.0,
+                      backgroundImage: mediaItem == null
+                          ? AssetImage('assets/ws_white.png')
+                          : NetworkImage(mediaItem?.artUri),
+                    ),
+                    SizedBox(
+                      width: 10.0,
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Text(
+                            mediaItem == null
+                                ? "Wildstream"
+                                : '${mediaItem?.title}',
+                            overflow: TextOverflow.ellipsis,
+                            softWrap: true,
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: kColorWhite),
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            mediaItem == null
+                                ? "Stay connected to the plug"
+                                : '${mediaItem?.artist}',
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Theme.of(context).accentColor),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-          child: Center(
-            child: Text(
-              "PLAYER",
-              style: TextStyle(color: Colors.white),
-            ),
+              SizedBox(
+                width: 10.0,
+              ),
+              _playButton(context: context),
+            ],
           ),
         ),
         body: Padding(
@@ -422,6 +474,20 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
           }),*/
     );
   }
+
+  IconButton _playButton({BuildContext context}) => IconButton(
+        icon: FaIcon(FontAwesomeIcons.playCircle),
+        color: Theme.of(context).accentColor,
+        iconSize: 30.0,
+        onPressed: AudioService.play,
+      );
+
+  IconButton _pauseButton({BuildContext context}) => IconButton(
+        icon: FaIcon(FontAwesomeIcons.pauseCircle),
+        color: Theme.of(context).accentColor,
+        iconSize: 60.0,
+        onPressed: AudioService.pause,
+      );
 
   /// Encapsulate all the different data we're interested in into a single
   /// stream so we don't have to nest StreamBuilders.
