@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:rxdart/subjects.dart';
+import 'package:wildstream/main.dart';
 
 class PositionIndicator extends StatelessWidget {
   final BehaviorSubject<double> dragPositionSubject;
@@ -47,6 +48,8 @@ class PositionIndicator extends StatelessWidget {
           children: [
             if (duration != null)
               Slider(
+                activeColor: Theme.of(context).accentColor,
+                inactiveColor: Colors.grey,
                 min: 0.0,
                 max: duration,
                 value: seekPos ?? max(0.0, min(position, duration)),
@@ -65,7 +68,12 @@ class PositionIndicator extends StatelessWidget {
                   dragPositionSubject.add(null);
                 },
               ),
-            Text("${(state.currentPosition / 1000).toStringAsFixed(3)}"),
+            Text(
+              "${(state.currentPosition / 1000).toStringAsFixed(3)}",
+              style: TextStyle(
+                color: kColorWhite,
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.fromLTRB(25, 0, 20, 0),
               child: Container(
@@ -80,9 +88,9 @@ class PositionIndicator extends StatelessWidget {
                               : state.currentPosition),
                     )}",
                     style: TextStyle(
-                      fontWeight: FontWeight.w300,
-                      fontSize: 12,
-                    ),
+                        fontWeight: FontWeight.w300,
+                        fontSize: 12,
+                        color: kColorWhite),
                   ),
 
                   Spacer(), //
@@ -103,9 +111,9 @@ class PositionIndicator extends StatelessWidget {
                                         milliseconds: state.currentPosition),
                           )}",
                     style: TextStyle(
-                      fontWeight: FontWeight.w300,
-                      fontSize: 12,
-                    ),
+                        fontWeight: FontWeight.w300,
+                        fontSize: 12,
+                        color: kColorWhite),
                   ), // use Spacer
                 ]),
               ),

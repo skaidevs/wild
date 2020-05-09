@@ -15,6 +15,7 @@ import 'package:wildstream/helpers/background.dart';
 import 'package:wildstream/helpers/screen_state.dart';
 import 'package:wildstream/providers/hot100.dart';
 import 'package:wildstream/screens/player.dart';
+import 'package:wildstream/screens/search.dart';
 
 void main() => runApp(WildStreamApp());
 
@@ -34,6 +35,8 @@ const MaterialColor bg_color = const MaterialColor(
   },
 );
 const Color kColorWSGreen = Color(0xFF029D75);
+const Color kColorWhite = Colors.white;
+
 List<MediaItem> _queue = [
   MediaItem(
     id: "https://cdn.wildstream.ng/storage/jungle/music/2019/3/9/imported-jy9orzxchz2q7ztywtdj.mp3",
@@ -88,7 +91,11 @@ class WildStreamApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Wildstrem',
         theme: ThemeData(
+          brightness: Brightness.dark,
+          backgroundColor: bg_color,
           primarySwatch: bg_color,
+          primaryColor: Color(0XFF181818),
+          accentColor: Color(0XFF029D75),
         ),
         debugShowCheckedModeBanner: false,
         home: AudioServiceWidget(child: WildStreamHomePage()),
@@ -116,7 +123,6 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
   bool _isLoading = false;
   bool _isPlaying = false;
   int _buildIndex = 0;
-  String _selectedIndex = '';
 
   MediaItem mediaItem;
   static const TextStyle optionStyle =
@@ -264,10 +270,6 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     );
   }
 
-  _onSelected(String index) {
-    setState(() => _selectedIndex = index);
-  }
-
   @override
   Widget build(BuildContext context) {
     print("BUILD NUMBER ${_buildIndex++}");
@@ -276,9 +278,9 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
       topRight: Radius.circular(10.0),
     );
     return Scaffold(
-//      appBar: AppBar(
-//        title: Text('WildStream'),
-//      ),
+      /*appBar: AppBar(
+        title: Text('WildStream'),
+      ),*/
       backgroundColor: bg_color,
       body: SlidingUpPanel(
         controller: _pc,
@@ -291,8 +293,8 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
         ),
         collapsed: Container(
           decoration: BoxDecoration(
-            color: Colors.blueGrey,
-          ),
+//            color: Colors,
+              ),
           child: Center(
             child: Text(
               "PLAYER",
@@ -372,7 +374,6 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
       ),
       bottomNavigationBar: _show
           ? BottomNavigationBar(
-              backgroundColor: bg_color,
               currentIndex: 0, // this will be set when a new tab is tapped
               items: [
                 BottomNavigationBarItem(
@@ -383,9 +384,19 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                   title: new Text('Home'),
                 ),
                 BottomNavigationBarItem(
-                  icon: new Icon(
-                    Icons.search,
-                    color: kColorWSGreen,
+                  icon: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Search(),
+                        ),
+                      );
+                    },
+                    child: new Icon(
+                      Icons.search,
+                      color: kColorWSGreen,
+                    ),
                   ),
                   title: new Text('Search'),
                 ),
