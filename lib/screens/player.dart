@@ -6,7 +6,9 @@ import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/components/loader/gf_loader.dart';
 import 'package:getflutter/shape/gf_avatar_shape.dart';
 import 'package:marquee_flutter/marquee_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:wildstream/helpers/background.dart';
 import 'package:wildstream/helpers/screen_state.dart';
 import 'package:wildstream/main.dart';
 import 'package:wildstream/widgets/positionIndicator.dart';
@@ -21,6 +23,13 @@ class PlayerStreamBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool _isRepeatEnable = false;
+    final _audioPlayerTask = Provider.of<AudioPlayerTask>(
+      context,
+      listen: true,
+    );
+    print("Provider.of ${_audioPlayerTask.getIsRepeatEnable}");
+
     return Container(
       color: Theme.of(context).backgroundColor,
       child: StreamBuilder<ScreenState>(
@@ -33,8 +42,8 @@ class PlayerStreamBuilder extends StatelessWidget {
           final basicState = state?.basicState ?? BasicPlaybackState.none;
           if (snapshot.hasError)
             print("ERROR On StreamBuilder ${snapshot.error}");
-//          print(
-//              "Changes in UI ${queue?.length} || ${mediaItem?.title} ||-- ${state?.position}|| || ${basicState.toString()}");
+          print(
+              "Changes in UI ${queue?.length} || ${mediaItem?.title} ||-- ${state?.position}|| || ${basicState.toString()}");
           return snapshot.hasData
               ? Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -171,12 +180,23 @@ class PlayerStreamBuilder extends StatelessWidget {
                             onPressed: null,
                           ),
                           stopButton(context: context),
-                          IconButton(
-                            icon: FaIcon(FontAwesomeIcons.redoAlt),
-                            iconSize: 26.0,
-                            color: Theme.of(context).accentColor,
-                            onPressed: null,
-                          ),
+                          StreamBuilder(
+                              stream: AudioService.customEventStream,
+                              builder: (context, snapshot) {
+                                print("Consumer ${snapshot.data}");
+                                return IconButton(
+                                  icon: FaIcon(FontAwesomeIcons.redoAlt),
+                                  iconSize: 26.0,
+                                  color: Theme.of(context).accentColor,
+                                  onPressed: () {
+                                    print("REPEAT TAPED");
+                                    _isRepeatEnable =
+                                        _isRepeatEnable ? false : true;
+                                    AudioService.customAction(
+                                        'repeat', _isRepeatEnable);
+                                  },
+                                );
+                              }),
                         ],
                       )
                     ],

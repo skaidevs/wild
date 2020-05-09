@@ -87,6 +87,10 @@ class WildStreamApp extends StatelessWidget {
           create: (_) => Hot100List(),
           child: WildStreamHomePage(),
         ),
+        ChangeNotifierProvider<AudioPlayerTask>(
+          create: (_) => AudioPlayerTask(),
+          child: PlayerStreamBuilder(),
+        ),
       ],
       child: MaterialApp(
         title: 'Wildstrem',
@@ -300,8 +304,6 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
             final basicState = state?.basicState ?? BasicPlaybackState.none;
             if (snapshot.hasError)
               print("ERROR On StreamBuilder ${snapshot.error}");
-            print(
-                "Changes Mini player || ${mediaItem?.title} ||-- ${state?.position}|| || ${basicState.toString()}");
 
             return snapshot.hasData
                 ? Container(
