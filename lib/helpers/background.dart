@@ -41,6 +41,7 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
   int _playFromIdIndex;
   int _repeatIndex;
   bool _isRepeatEnable = false;
+  bool _isShuffledEnable = false;
 
   bool get getIsRepeatEnable => _isRepeatEnable;
 
@@ -139,15 +140,31 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
   @override
   Future onCustomAction(String name, arguments) {
     // TODO: implement onCustomAction
-    if (name == 'repeat' && arguments == true) {
-      print("RepeatIndex  $name || $arguments");
-      _isRepeatEnable = arguments;
-    } else if (arguments == false) {
-      print("from _isRepeatEnable false= $name $arguments ");
-      _isRepeatEnable = arguments;
+
+    if (name == 'repeat') {
+      if (arguments) {
+        _isRepeatEnable = arguments;
+      } else {
+        _isRepeatEnable = arguments;
+      }
+//      _isShuffledEnable = false;
+      AudioServiceBackground.sendCustomEvent(_isRepeatEnable);
+      print(
+          "From RepeatEnable= $name | $arguments | $_isRepeatEnable and ShuffledEnable $_isShuffledEnable");
+    } else if (name == 'shuffle') {
+      if (arguments) {
+        _isShuffledEnable = arguments;
+      } else {
+        _isShuffledEnable = arguments;
+      }
+//      _isRepeatEnable = false;
+      AudioServiceBackground.sendCustomEvent(_isShuffledEnable);
+      print(
+          "From ShuffledEnable $name | $arguments | $_isShuffledEnable and RepeatEnable $_isRepeatEnable");
     }
-    print("has notifyListeners");
-    AudioServiceBackground.sendCustomEvent(_isRepeatEnable);
+
+    if (name == 'repeat') {
+    } else if (name == 'shuffle') {}
 
     return super.onCustomAction(name, arguments);
   }

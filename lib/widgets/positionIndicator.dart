@@ -49,7 +49,7 @@ class PositionIndicator extends StatelessWidget {
             if (duration != null)
               Slider(
                 activeColor: Theme.of(context).accentColor,
-                inactiveColor: Colors.grey,
+                inactiveColor: Theme.of(context).bottomAppBarColor,
                 min: 0.0,
                 max: duration,
                 value: seekPos ?? max(0.0, min(position, duration)),

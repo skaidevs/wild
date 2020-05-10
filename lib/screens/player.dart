@@ -24,6 +24,8 @@ class PlayerStreamBuilder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool _isRepeatEnable = false;
+    bool _isShuffledEnable = false;
+
     final _audioPlayerTask = Provider.of<AudioPlayerTask>(
       context,
       listen: true,
@@ -98,6 +100,7 @@ class PlayerStreamBuilder extends StatelessWidget {
                         children: [
                           IconButton(
                             icon: FaIcon(FontAwesomeIcons.stepBackward),
+                            disabledColor: Theme.of(context).bottomAppBarColor,
                             color: Theme.of(context).accentColor,
                             iconSize: 38.0,
                             onPressed: mediaItem == queue.first
@@ -130,6 +133,7 @@ class PlayerStreamBuilder extends StatelessWidget {
                             ],
                           ),
                           IconButton(
+                            disabledColor: Theme.of(context).bottomAppBarColor,
                             icon: FaIcon(FontAwesomeIcons.stepForward),
                             iconSize: 38.0,
                             color: Theme.of(context).accentColor,
@@ -173,27 +177,42 @@ class PlayerStreamBuilder extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: <Widget>[
-                          IconButton(
-                            icon: FaIcon(FontAwesomeIcons.random),
-                            iconSize: 26.0,
-                            color: Theme.of(context).accentColor,
-                            onPressed: null,
-                          ),
+                          StreamBuilder(
+                              stream: AudioService.customEventStream,
+                              builder: (context, snapshot) {
+                                return IconButton(
+                                  icon: FaIcon(FontAwesomeIcons.random),
+                                  iconSize: 26.0,
+                                  color: _isShuffledEnable
+                                      ? Theme.of(context).accentColor
+                                      : Theme.of(context).bottomAppBarColor,
+                                  onPressed: () {
+                                    _isShuffledEnable =
+                                        _isShuffledEnable ? false : true;
+                                    AudioService.customAction(
+                                        'shuffle', _isShuffledEnable);
+                                    print("SHUFFED TAPED $_isShuffledEnable");
+                                  },
+                                );
+                              }),
                           stopButton(context: context),
                           StreamBuilder(
                               stream: AudioService.customEventStream,
                               builder: (context, snapshot) {
-                                print("Consumer ${snapshot.data}");
                                 return IconButton(
+                                  disabledColor:
+                                      Theme.of(context).bottomAppBarColor,
                                   icon: FaIcon(FontAwesomeIcons.redoAlt),
                                   iconSize: 26.0,
-                                  color: Theme.of(context).accentColor,
+                                  color: _isRepeatEnable
+                                      ? Theme.of(context).accentColor
+                                      : Theme.of(context).bottomAppBarColor,
                                   onPressed: () {
-                                    print("REPEAT TAPED");
                                     _isRepeatEnable =
                                         _isRepeatEnable ? false : true;
                                     AudioService.customAction(
                                         'repeat', _isRepeatEnable);
+                                    print("REPEAT TAPED $_isRepeatEnable");
                                   },
                                 );
                               }),
