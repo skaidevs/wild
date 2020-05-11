@@ -36,6 +36,8 @@ class Hot100List with ChangeNotifier {
 
       if (_hot100Songs.name == 'Hot 100') {
         _hot100SongsList = _hot100Songs.data.toList();
+        print("Hott.... ${_hot100SongsList[1].songArt.crops.crop500}");
+
         var _lastQueuedItems = AudioService.queue;
         if (_hot100MediaList.isEmpty || _hot100MediaList == null) {
           _hot100SongsList.forEach((mediaData) => {
@@ -46,7 +48,7 @@ class Hot100List with ChangeNotifier {
                     title: mediaData.name,
                     artist: mediaData.artistsToString,
                     duration: mediaData.duration,
-                    artUri: mediaData.songArt.artUrl,
+                    artUri: mediaData.songArt.crops.crop500,
                   ),
                 ),
               });

@@ -70,10 +70,25 @@ class SongFile with ChangeNotifier {
 
 class SongArt with ChangeNotifier {
   final String artUrl;
-  SongArt({this.artUrl});
+  Crops crops;
+
+  SongArt({this.artUrl, this.crops});
+
   factory SongArt.fromJson(Map<String, dynamic> parsedJson) {
     return SongArt(
       artUrl: parsedJson['url'] as String,
+      crops: Crops.fromJson(parsedJson['crops']),
+    );
+  }
+}
+
+class Crops with ChangeNotifier {
+  final String crop500;
+  Crops({this.crop500});
+
+  factory Crops.fromJson(Map<String, dynamic> parsedJson) {
+    return Crops(
+      crop500: parsedJson['500'] as String,
     );
   }
 }

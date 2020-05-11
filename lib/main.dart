@@ -89,7 +89,6 @@ class WildStreamApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<AudioPlayerTask>(
           create: (_) => AudioPlayerTask(),
-          child: PlayerStreamBuilder(),
         ),
       ],
       child: MaterialApp(
@@ -205,7 +204,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
       backgroundTaskEntrypoint: _audioPlayerTaskEntryPoint,
       androidNotificationChannelName: 'WildStream',
       notificationColor: 0xFF0A0A0A,
-      androidNotificationIcon: 'mipmap/ic_launcher',
+      androidNotificationIcon: 'drawable/ic_notification',
       enableQueue: true,
     );
   }
@@ -308,7 +307,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
             return snapshot.hasData
                 ? Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(context).backgroundColor,
+                      color: Theme.of(context).primaryColor,
                     ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10.0),
