@@ -6,6 +6,45 @@ import 'package:rxdart/rxdart.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:wildstream/main.dart';
 
+List<MediaItem> _queue = [
+  MediaItem(
+    id: "https://cdn.wildstream.ng/storage/jungle/music/2019/3/9/imported-jy9orzxchz2q7ztywtdj.mp3",
+    album: "Location..",
+    title: "Location",
+    artist: "Dave (feat. Burna Boy)",
+    duration: 573980,
+    artUri:
+        "https://cdn.wildstream.ng/storage/jungle/featured_images/M0RFK2rW5KY.png",
+  ),
+  MediaItem(
+    id: "https://cdn.wildstream.ng/storage/jungle/music/2019/10/2/imported-a0ntuflslqeab.mp3",
+    album: "Koto Aye (Vol.2)..",
+    title: "Koto Aye (Vol.2)",
+    artist: "Davolee, Mr Bee, Mohbad, Tsalt",
+    duration: 285690,
+    artUri:
+        "https://cdn.wildstream.ng/storage/jungle/featured_images/ClyAcxYF8om3e.jpg",
+  ),
+  MediaItem(
+    id: "https://cdn.wildstream.ng/storage/jungle/music/2019/6/21/imported-riszoibwx2q1mfqe.mp3",
+    album: "Ello Baby..",
+    title: "Ello Baby",
+    artist: "Tiwa Savage, Young John, Kizz Daniel",
+    duration: 573980,
+    artUri:
+        "https://cdn.wildstream.ng/storage/jungle/featured_images/mr0Yugxihk.jpg",
+  ),
+  MediaItem(
+    id: "https://cdn.wildstream.ng/storage/jungle/music/2019/11/29/imported-b73xojzkvexxnce.mp3",
+    album: "Vibration..",
+    title: "Vibration",
+    artist: "Fireboy DML",
+    duration: 285690,
+    artUri:
+        "https://cdn.wildstream.ng/storage/jungle/featured_images/LPbfhZ6KHX.jpg",
+  ),
+];
+
 class PositionIndicator extends StatelessWidget {
   final BehaviorSubject<double> dragPositionSubject;
   final MediaItem mediaItem;

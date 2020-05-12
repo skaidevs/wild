@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
@@ -13,11 +14,71 @@ import 'package:rxdart/subjects.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:wildstream/helpers/background.dart';
 import 'package:wildstream/helpers/screen_state.dart';
-import 'package:wildstream/providers/hot100.dart';
+import 'package:wildstream/models/song.dart';
+import 'package:wildstream/providers/bottom_navigator.dart';
+import 'package:wildstream/providers/latest_hot100_throwback.dart';
 import 'package:wildstream/screens/player.dart';
 import 'package:wildstream/screens/search.dart';
 
-void main() => runApp(WildStreamApp());
+//void main() => runApp(WildStreamApp());
+void main() {
+  final hcBloc = SongsNotifier();
+  runApp(
+    WildStreamApp(
+      bloc: hcBloc,
+    ),
+  );
+}
+
+class LoadingInfo extends StatefulWidget {
+  final Stream<bool> _isLoading;
+  LoadingInfo(this._isLoading);
+
+  @override
+  _LoadingInfoState createState() => _LoadingInfoState();
+}
+
+class _LoadingInfoState extends State<LoadingInfo>
+    with TickerProviderStateMixin {
+  AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 1),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+        stream: widget._isLoading,
+        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+          if (snapshot.hasData && snapshot.data) {
+            _controller.forward().then(
+                  (_) => _controller.reverse(),
+                );
+            return FadeTransition(
+              opacity: Tween(
+                begin: .5,
+                end: 1.0,
+              ).animate(
+                CurvedAnimation(
+                  parent: _controller,
+                  curve: Curves.easeIn,
+                ),
+              ),
+              child: Icon(
+                FontAwesomeIcons.hackerNewsSquare,
+              ),
+            );
+          }
+          return Container();
+        });
+  }
+}
 
 const MaterialColor bg_color = const MaterialColor(
   0xFF0A0A0A,
@@ -37,72 +98,50 @@ const MaterialColor bg_color = const MaterialColor(
 const Color kColorWSGreen = Color(0xFF029D75);
 const Color kColorWhite = Colors.white;
 
-List<MediaItem> _queue = [
-  MediaItem(
-    id: "https://cdn.wildstream.ng/storage/jungle/music/2019/3/9/imported-jy9orzxchz2q7ztywtdj.mp3",
-    album: "Location..",
-    title: "Location",
-    artist: "Dave (feat. Burna Boy)",
-    duration: 573980,
-    artUri:
-        "https://cdn.wildstream.ng/storage/jungle/featured_images/M0RFK2rW5KY.png",
-  ),
-  MediaItem(
-    id: "https://cdn.wildstream.ng/storage/jungle/music/2019/10/2/imported-a0ntuflslqeab.mp3",
-    album: "Koto Aye (Vol.2)..",
-    title: "Koto Aye (Vol.2)",
-    artist: "Davolee, Mr Bee, Mohbad, Tsalt",
-    duration: 285690,
-    artUri:
-        "https://cdn.wildstream.ng/storage/jungle/featured_images/ClyAcxYF8om3e.jpg",
-  ),
-  MediaItem(
-    id: "https://cdn.wildstream.ng/storage/jungle/music/2019/6/21/imported-riszoibwx2q1mfqe.mp3",
-    album: "Ello Baby..",
-    title: "Ello Baby",
-    artist: "Tiwa Savage, Young John, Kizz Daniel",
-    duration: 573980,
-    artUri:
-        "https://cdn.wildstream.ng/storage/jungle/featured_images/mr0Yugxihk.jpg",
-  ),
-  MediaItem(
-    id: "https://cdn.wildstream.ng/storage/jungle/music/2019/11/29/imported-b73xojzkvexxnce.mp3",
-    album: "Vibration..",
-    title: "Vibration",
-    artist: "Fireboy DML",
-    duration: 285690,
-    artUri:
-        "https://cdn.wildstream.ng/storage/jungle/featured_images/LPbfhZ6KHX.jpg",
-  ),
-];
-
 class WildStreamApp extends StatelessWidget {
   // This widget is the root of your application.
+  final SongsNotifier bloc;
+
+  const WildStreamApp({Key key, this.bloc}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final newTextTheme = Theme.of(context).textTheme.apply(
+          bodyColor: Colors.white,
+          displayColor: Colors.white,
+        );
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<Hot100List>(
-          create: (_) => Hot100List(),
+        ChangeNotifierProvider<SongsNotifier>(
+          create: (_) => SongsNotifier(),
           child: WildStreamHomePage(),
         ),
         ChangeNotifierProvider<AudioPlayerTask>(
           create: (_) => AudioPlayerTask(),
         ),
+        ChangeNotifierProvider<BottomNavigation>(
+          create: (_) => BottomNavigation(),
+          child: WildStreamApp(),
+        ),
       ],
       child: MaterialApp(
         title: 'Wildstrem',
         theme: ThemeData(
-          brightness: Brightness.dark,
-          accentColorBrightness: Brightness.dark,
-          backgroundColor: bg_color,
-          primarySwatch: bg_color,
-          primaryColor: Color(0XFF181818),
-          accentColor: Color(0XFF029D75),
-        ),
+//          brightness: Brightness.dark,
+//          accentColorBrightness: Brightness.dark,
+            backgroundColor: bg_color,
+            primarySwatch: bg_color,
+//          primaryColor: Color(0XFF181818),
+            accentColor: const Color(0XFF029D75),
+            hintColor: Colors.white,
+            textTheme: newTextTheme),
         debugShowCheckedModeBanner: false,
-        home: AudioServiceWidget(child: WildStreamHomePage()),
+        home: AudioServiceWidget(
+          child: WildStreamHomePage(
+            bloc: bloc,
+            title: 'WildStream',
+          ),
+        ),
       ),
     );
   }
@@ -110,8 +149,9 @@ class WildStreamApp extends StatelessWidget {
 
 class WildStreamHomePage extends StatefulWidget {
   final String title;
+  final SongsNotifier bloc;
 
-  WildStreamHomePage({Key key, this.title}) : super(key: key);
+  WildStreamHomePage({Key key, this.title, this.bloc}) : super(key: key);
 
   @override
   _WildStreamHomePageState createState() => _WildStreamHomePageState();
@@ -128,6 +168,10 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
   bool _isPlaying = false;
   int _buildIndex = 0;
   MediaItem mediaItem;
+  int _currentIndex = 0;
+  var _bottomNavigation;
+  int _bottomNavigationIndex = 0;
+
   static const TextStyle optionStyle =
       TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   static const List<Widget> _widgetOptions = <Widget>[
@@ -145,14 +189,14 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     ),
   ];
 
-  Future<List<MediaItem>> _fetchHot100Songs() async {
-    return await Provider.of<Hot100List>(
-      context,
-      listen: false,
-    ).loadHot100().catchError((onError) {
-      print("Error on Screen $onError");
-    });
-  }
+//  Future<List<Data>> _fetchSongs() async {
+//    return await Provider.of<SongsNotifier>(
+//      context,
+//      listen: false,
+//    ).loadSongs(songType: 'latest').catchError((onError) {
+//      print("Error on Screen $onError");
+//    });
+//  }
 
   void _fetchData() async {
     _isLoading = true;
@@ -160,27 +204,27 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
 //      _pc.hide();
 //    }
 
-    Future.delayed(
-      Duration.zero,
-    ).then((_) async {
-      _fetchHot100Songs().then((hot100MediaList) async {
-        await _startPlayer();
-        var _lastQueuedItems = AudioService.queue;
-        print("_lastQueuedItems $_lastQueuedItems");
-
-        if (_lastQueuedItems == null || _lastQueuedItems.isEmpty) {
-          print("addQueueItem from api ${hot100MediaList.length}");
-          await AudioService.addQueueItems(hot100MediaList);
-          AudioService.play();
-        } else {
-          print("length is Not 0 ${_lastQueuedItems.length} ");
-          return;
-        }
-        print("run afer addQueue from api ${hot100MediaList.length}");
-      }).then(
-        (_) => setState(() => _isLoading = false),
-      );
-    });
+//    Future.delayed(
+//      Duration.zero,
+//    ).then((_) async {
+//      _fetchHot100Songs().then((hot100MediaList) async {
+//        await _startPlayer();
+//        var _lastQueuedItems = AudioService.queue;
+//        print("_lastQueuedItems $_lastQueuedItems");
+//
+//        if (_lastQueuedItems == null || _lastQueuedItems.isEmpty) {
+//          print("addQueueItem from api ${hot100MediaList.length}");
+//          await AudioService.addQueueItems(hot100MediaList);
+//          AudioService.play();
+//        } else {
+//          print("length is Not 0 ${_lastQueuedItems.length} ");
+//          return;
+//        }
+//        print("run afer addQueue from api ${hot100MediaList.length}");
+//      }).then(
+//        (_) => setState(() => _isLoading = false),
+//      );
+//    });
   }
 
   @override
@@ -192,10 +236,11 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
 
   void initState() {
     super.initState();
-    connect();
-    WidgetsBinding.instance.addObserver(this);
-//    this._startPlayer();
-    this._fetchData();
+//    _fetchSongs();
+//    connect();
+//    WidgetsBinding.instance.addObserver(this);
+////    this._startPlayer();
+//    this._fetchData();
   }
 
   _startPlayer() async {
@@ -229,10 +274,10 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     super.dispose();
   }
 
-  AppLifecycleState _notification;
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    AppLifecycleState _notification;
+
     setState(() {
       _notification = state;
     });
@@ -276,14 +321,41 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
   @override
   Widget build(BuildContext context) {
     print("BUILD NUMBER ${_buildIndex++}");
+    _bottomNavigation = Provider.of<BottomNavigation>(context);
+
+//    final _data = Provider.of<SongsNotifier>(context).songs;
     BorderRadiusGeometry radius = BorderRadius.only(
       topLeft: Radius.circular(10.0),
       topRight: Radius.circular(10.0),
     );
     return Scaffold(
-      /*appBar: AppBar(
-        title: Text('WildStream'),
-      ),*/
+      appBar: AppBar(
+        title: Text(widget.title),
+        leading: LoadingInfo(widget.bloc.isLoading),
+        actions: <Widget>[
+          Builder(
+            builder: (context) => IconButton(
+                icon: FaIcon(
+                  FontAwesomeIcons.search,
+                ),
+                onPressed: () async {
+                  //TODO Play media
+                  final Data result = await showSearch<Data>(
+                    context: context,
+                    delegate: SongSearch(
+                      song: widget.bloc.songList,
+                    ),
+                  );
+                  Scaffold.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(result?.name),
+                    ),
+                  );
+                  print("RESULT ${result.name}");
+                }),
+          ),
+        ],
+      ),
       backgroundColor: Theme.of(context).backgroundColor,
       body: SlidingUpPanel(
         controller: _pc,
@@ -343,7 +415,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                                             : '${mediaItem?.title}',
                                         overflow: TextOverflow.ellipsis,
                                         softWrap: true,
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
                                             color: kColorWhite),
@@ -405,111 +477,67 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                   );
           },
         ),
-        body: Padding(
-          padding: const EdgeInsets.only(bottom: 50.0),
-          child: ListView(
-            children: <Widget>[
-              Consumer<Hot100List>(
-                builder: (context, data, child) => ListView.separated(
-                  padding: const EdgeInsets.all(2.0),
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  physics: ClampingScrollPhysics(),
-                  separatorBuilder: (context, index) => const Divider(
-                    indent: 90.0,
-                    thickness: 0.6,
-                    endIndent: 10.0,
-                    color: Colors.white30,
-                  ),
-                  itemCount: data.hot100MediaList.length,
-                  itemBuilder: (context, index) => ListTile(
-                    leading: GFAvatar(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(6.0),
-                      ),
-                      shape: GFAvatarShape.standard,
-                      size: 42.0,
-                      backgroundImage:
-                          NetworkImage(data.hot100MediaList[index].artUri),
-                    ),
-                    title: Text(
-                      '${data.hot100MediaList[index].title}',
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 10.0,
-                      ),
-                      child: Text(
-                        '${data.hot100MediaList[index].artist}',
-                        style: TextStyle(color: kColorWSGreen),
-                      ),
-                    ),
-                    trailing: StreamBuilder<ScreenState>(
-                      stream: _screenStateStream,
-                      builder: (context, snapshot) {
-                        final screenState = snapshot.data;
-                        mediaItem = screenState?.mediaItem;
-
-                        if (mediaItem?.id == data.hot100MediaList[index].id) {
-                          return _mediaIndicator();
-                        } else {
-                          return Icon(
-                            Icons.more_horiz,
-                            color: kColorWSGreen,
-                          );
-                        }
-                      },
-                    ),
-                    onTap: () async {
-                      mediaItem = data.hot100MediaList[index];
-                      AudioService.playFromMediaId(mediaItem.id);
-                    },
-                    selected: true,
-                  ),
+        body: StreamBuilder<UnmodifiableListView<Data>>(
+            initialData: UnmodifiableListView<Data>([]),
+            stream: widget.bloc.songList,
+            builder: (context, snapshot) {
+//              print('DATA: ${snapshot?.data}');
+              return ListView.builder(
+                padding: const EdgeInsets.all(2.0),
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                physics: ClampingScrollPhysics(),
+                /*separatorBuilder: (context, index) => const Divider(
+                  indent: 90.0,
+                  thickness: 0.6,
+                  endIndent: 10.0,
+                  color: Colors.white30,
+                ),*/
+                itemCount: snapshot.data.length,
+                itemBuilder: (context, index) => _buildSong(
+                  song: snapshot.data[index],
                 ),
-              ),
-            ],
-          ),
-        ),
+              );
+            }),
       ),
       bottomNavigationBar: _show
           ? BottomNavigationBar(
-              currentIndex: 0, // this will be set when a new tab is tapped
+              backgroundColor: Theme.of(context).primaryColor,
+              currentIndex: _bottomNavigation.currentIndex,
+              // this will be set when a new tab is tapped
+              onTap: (index) {
+                _bottomNavigation.currentIndex = index;
+
+                if (index == 0) {
+                  widget.bloc.songTypes.add(SongTypes.latest);
+                } else if (index == 1) {
+                  widget.bloc.songTypes.add(SongTypes.hot100);
+                } else {
+                  widget.bloc.songTypes.add(SongTypes.throwback);
+                }
+              },
               items: [
                 BottomNavigationBarItem(
-                  icon: new Icon(
-                    Icons.home,
+                  icon: const Icon(
+                    Icons.new_releases,
                     color: kColorWSGreen,
                   ),
-                  title: new Text('Home'),
+                  title: const Text('Latest'),
                 ),
                 BottomNavigationBarItem(
-                  icon: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Search(),
-                        ),
-                      );
-                    },
-                    child: new Icon(
-                      Icons.search,
-                      color: kColorWSGreen,
-                    ),
-                  ),
-                  title: new Text('Search'),
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(
-                    Icons.library_music,
+                  icon: const Icon(
+                    Icons.trending_up,
                     color: kColorWSGreen,
                   ),
-                  title: Text(
-                    'Playlist',
+                  title: const Text('Hot100'),
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(
+                    Icons.folder_special,
+                    color: kColorWSGreen,
+                  ),
+                  title: const Text(
+                    'Throw back',
                   ),
                 )
               ],
@@ -523,6 +551,67 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
 //            print("Seelected QUEITEM  ${q[0].title}");
             _controller.isOpened ? _controller.hide() : _controller.show();
           }),*/
+    );
+  }
+
+  Widget _buildSong({Data song}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 6.0,
+        vertical: 8.0,
+      ),
+      child: ListTile(
+        key: Key(song.name),
+        leading: GFAvatar(
+          borderRadius: BorderRadius.all(
+            Radius.circular(6.0),
+          ),
+          shape: GFAvatarShape.standard,
+          size: 42.0,
+          backgroundImage: NetworkImage(song.songArt.artUrl),
+        ),
+        title: Text(
+          '${song.name}',
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(
+            top: 10.0,
+          ),
+          child: Text(
+            '${song.artistsToString}',
+            style: TextStyle(color: kColorWSGreen),
+          ),
+        ),
+        trailing: Icon(
+          Icons.more_horiz,
+          color: kColorWSGreen,
+        ),
+        /*StreamBuilder<ScreenState>(
+          stream: _screenStateStream,
+          builder: (context, snapshot) {
+            final screenState = snapshot.data;
+            mediaItem = screenState?.mediaItem;
+
+            if (mediaItem?.id == data.hot100MediaList[index].id) {
+              return _mediaIndicator();
+            } else {
+              return Icon(
+                Icons.more_horiz,
+                color: kColorWSGreen,
+              );
+            }
+          },
+        ),*/
+        onTap: () async {
+          print("Taped");
+//          mediaItem = data.hot100MediaList[index];
+//          AudioService.playFromMediaId(mediaItem.id);
+        },
+        selected: true,
+      ),
     );
   }
 
