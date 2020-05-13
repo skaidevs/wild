@@ -1,10 +1,12 @@
 import 'dart:collection';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/shape/gf_avatar_shape.dart';
-import 'package:wildstream/main.dart';
 import 'package:wildstream/models/song.dart';
+import 'package:wildstream/widgets/build_song_item.dart';
+import 'package:wildstream/widgets/commons.dart';
 
 class Throwback extends StatelessWidget {
   final song;
@@ -16,6 +18,19 @@ class Throwback extends StatelessWidget {
     print("Throwback Build");
 
     return Container(
+      padding: Platform.isIOS
+          ? const EdgeInsets.fromLTRB(
+              0.0,
+              0.0,
+              0.0,
+              140.0,
+            )
+          : const EdgeInsets.fromLTRB(
+              0.0,
+              0.0,
+              0.0,
+              120.0,
+            ),
       color: Theme.of(context).backgroundColor,
       child: StreamBuilder<UnmodifiableListView<Data>>(
           initialData: UnmodifiableListView<Data>([]),
@@ -34,7 +49,7 @@ class Throwback extends StatelessWidget {
                 color: Colors.white30,
               ),*/
               itemCount: snapshot.data.length,
-              itemBuilder: (context, index) => _buildSong(
+              itemBuilder: (context, index) => BuildSongItem(
                 song: snapshot.data[index],
               ),
             );

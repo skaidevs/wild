@@ -35,8 +35,10 @@ dependencies:
   auto_size_text: ^2.1.0
   font_awesome_flutter: ^8.8.1
   marquee_flutter: ^0.1.4
+  fluttertoast: ^4.0.1
   built_collection: '>=2.0.0 <5.0.0'
   built_value: ^7.0.2
+
 
 
 

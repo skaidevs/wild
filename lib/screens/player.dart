@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:wildstream/helpers/background.dart';
 import 'package:wildstream/helpers/screen_state.dart';
-import 'package:wildstream/main.dart';
+import 'package:wildstream/widgets/commons.dart';
 import 'package:wildstream/widgets/positionIndicator.dart';
 
 class PlayerStreamBuilder extends StatelessWidget {

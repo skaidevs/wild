@@ -21,6 +21,7 @@ import 'package:wildstream/screens/latest_hot100_throwback.dart';
 import 'package:wildstream/screens/player.dart';
 import 'package:wildstream/screens/playlist.dart';
 import 'package:wildstream/screens/search.dart';
+import 'package:wildstream/widgets/commons.dart';
 
 //void main() => runApp(WildStreamApp());
 void main() {
@@ -32,77 +33,6 @@ void main() {
   );
 }
 
-class LoadingInfo extends StatefulWidget {
-  final Stream<bool> _isLoading;
-  LoadingInfo(this._isLoading);
-
-  @override
-  _LoadingInfoState createState() => _LoadingInfoState();
-}
-
-class _LoadingInfoState extends State<LoadingInfo>
-    with TickerProviderStateMixin {
-  AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: Duration(seconds: 1),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder(
-        stream: widget._isLoading,
-        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-          if (snapshot.hasData && snapshot.data) {
-            _controller.forward().then(
-                  (_) => _controller.reverse(),
-                );
-            return FadeTransition(
-              opacity: Tween(
-                begin: .5,
-                end: 1.0,
-              ).animate(
-                CurvedAnimation(
-                  parent: _controller,
-                  curve: Curves.easeIn,
-                ),
-              ),
-              child: Icon(
-                FontAwesomeIcons.hackerNewsSquare,
-                size: 30.0,
-              ),
-            );
-          }
-          return Container();
-        });
-  }
-}
-
-const MaterialColor bg_color = const MaterialColor(
-  0xFF0A0A0A,
-  const <int, Color>{
-    50: const Color(0xFF0A0A0A),
-    100: const Color(0xFF0A0A0A),
-    200: const Color(0xFF0A0A0A),
-    300: const Color(0xFF0A0A0A),
-    400: const Color(0xFF0A0A0A),
-    500: const Color(0xFF0A0A0A),
-    600: const Color(0xFF0A0A0A),
-    700: const Color(0xFF0A0A0A),
-    800: const Color(0xFF0A0A0A),
-    900: const Color(0xFF0A0A0A),
-  },
-);
-const Color kColorWSGreen = Color(0xFF029D75);
-const Color kColorWSAltBlack = Color(0x444444);
-
-const Color kColorWhite = Colors.white;
-
 class WildStreamApp extends StatelessWidget {
   // This widget is the root of your application.
   final SongsNotifier bloc;
@@ -112,8 +42,8 @@ class WildStreamApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final newTextTheme = Theme.of(context).textTheme.apply(
-          bodyColor: Colors.white,
-          displayColor: Colors.white,
+          bodyColor: kColorWhite,
+          displayColor: kColorWhite,
         );
     return MultiProvider(
       providers: [
@@ -135,8 +65,9 @@ class WildStreamApp extends StatelessWidget {
             brightness: Brightness.dark,
             accentColorBrightness: Brightness.dark,
             backgroundColor: bg_color,
-            primarySwatch: bg_color,
-//          primaryColor: Color(0XFF181818),
+//            primarySwatch: bg_color,
+            primaryColor: Color(0XFF1E222A),
+            bottomAppBarColor: Color(0XFF1E222A),
             accentColor: const Color(0XFF029D75),
             hintColor: Colors.white,
             textTheme: newTextTheme),
@@ -517,27 +448,19 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
       ),
       bottomNavigationBar: _show
           ? BottomNavigationBar(
-              backgroundColor: Theme.of(context).bottomAppBarColor,
+              backgroundColor: kColorWSAltBlack,
+              type: BottomNavigationBarType.fixed,
 
               currentIndex: _bottomNavigation.currentIndex,
               showSelectedLabels: true,
-
               // this will be set when a new tab is tapped
               onTap: (index) {
                 _bottomNavigation.currentIndex = index;
                 _bottomNavigationIndex = index;
-
-                /*if (index == 0) {
-                widget.bloc.songTypes.add(SongTypes.latest);
-              } else if (index == 1) {
-                widget.bloc.songTypes.add(SongTypes.hot100);
-              } else {
-                widget.bloc.songTypes.add(SongTypes.throwback);
-              }*/
               },
               items: const [
                 BottomNavigationBarItem(
-//                  backgroundColor: Theme.of(context).bottomAppBarColor,
+                  backgroundColor: kColorWSAltBlack,
                   icon: const Icon(
                     Icons.home,
                     //color: kColorWSGreen,
@@ -545,7 +468,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                   title: Text(''),
                 ),
                 BottomNavigationBarItem(
-//                  backgroundColor: Theme.of(context).bottomAppBarColor,
+                  backgroundColor: kColorWSAltBlack,
                   icon: const Icon(
                     Icons.search,
                     //color: kColorWSGreen,
@@ -553,7 +476,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                   title: Text(''),
                 ),
                 BottomNavigationBarItem(
-//                  backgroundColor: Theme.of(context).bottomAppBarColor,
+                  backgroundColor: kColorWSAltBlack,
                   icon: const Icon(
                     Icons.album,
                     //color: kColorWSGreen,
@@ -561,7 +484,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                   title: Text(''),
                 ),
                 BottomNavigationBarItem(
-//                  backgroundColor: Theme.of(context).bottomAppBarColor,
+                  backgroundColor: kColorWSAltBlack,
                   icon: const Icon(
                     Icons.playlist_play,
                     //color: kColorWSGreen,

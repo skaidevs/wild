@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/shape/gf_avatar_shape.dart';
-import 'package:wildstream/main.dart';
 import 'package:wildstream/models/song.dart';
+import 'package:wildstream/widgets/commons.dart';
 
 class SongSearch extends SearchDelegate<Data> {
   final Stream<UnmodifiableListView<Data>> song;

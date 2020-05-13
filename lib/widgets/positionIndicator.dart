@@ -4,7 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:rxdart/subjects.dart';
-import 'package:wildstream/main.dart';
+import 'package:wildstream/widgets/commons.dart';
 
 List<MediaItem> _queue = [
   MediaItem(

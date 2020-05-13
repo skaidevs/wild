@@ -1,10 +1,13 @@
 import 'dart:collection';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/shape/gf_avatar_shape.dart';
-import 'package:wildstream/main.dart';
 import 'package:wildstream/models/song.dart';
+import 'package:wildstream/widgets/build_song_item.dart';
+import 'package:wildstream/widgets/commons.dart';
+import 'package:wildstream/widgets/loadingInfo.dart';
 
 class Latest extends StatelessWidget {
   final song;
@@ -13,6 +16,19 @@ class Latest extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: Platform.isIOS
+          ? const EdgeInsets.fromLTRB(
+              0.0,
+              0.0,
+              0.0,
+              140.0,
+            )
+          : const EdgeInsets.fromLTRB(
+              0.0,
+              0.0,
+              0.0,
+              120.0,
+            ),
       color: Theme.of(context).backgroundColor,
       child: StreamBuilder<UnmodifiableListView<Data>>(
           initialData: UnmodifiableListView<Data>([]),
@@ -34,7 +50,7 @@ class Latest extends StatelessWidget {
                   color: Colors.white30,
                 ),*/
               itemCount: snapshot.data.length,
-              itemBuilder: (context, index) => _buildSong(
+              itemBuilder: (context, index) => BuildSongItem(
                 song: snapshot.data[index],
               ),
             );
