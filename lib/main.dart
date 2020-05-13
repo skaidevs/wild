@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
@@ -17,7 +16,10 @@ import 'package:wildstream/helpers/screen_state.dart';
 import 'package:wildstream/models/song.dart';
 import 'package:wildstream/providers/bottom_navigator.dart';
 import 'package:wildstream/providers/latest_hot100_throwback.dart';
+import 'package:wildstream/screens/album.dart';
+import 'package:wildstream/screens/latest_hot100_throwback.dart';
 import 'package:wildstream/screens/player.dart';
+import 'package:wildstream/screens/playlist.dart';
 import 'package:wildstream/screens/search.dart';
 
 //void main() => runApp(WildStreamApp());
@@ -72,6 +74,7 @@ class _LoadingInfoState extends State<LoadingInfo>
               ),
               child: Icon(
                 FontAwesomeIcons.hackerNewsSquare,
+                size: 30.0,
               ),
             );
           }
@@ -96,6 +99,8 @@ const MaterialColor bg_color = const MaterialColor(
   },
 );
 const Color kColorWSGreen = Color(0xFF029D75);
+const Color kColorWSAltBlack = Color(0x444444);
+
 const Color kColorWhite = Colors.white;
 
 class WildStreamApp extends StatelessWidget {
@@ -127,8 +132,8 @@ class WildStreamApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Wildstrem',
         theme: ThemeData(
-//          brightness: Brightness.dark,
-//          accentColorBrightness: Brightness.dark,
+            brightness: Brightness.dark,
+            accentColorBrightness: Brightness.dark,
             backgroundColor: bg_color,
             primarySwatch: bg_color,
 //          primaryColor: Color(0XFF181818),
@@ -159,7 +164,6 @@ class WildStreamHomePage extends StatefulWidget {
 
 class _WildStreamHomePageState extends State<WildStreamHomePage>
     with WidgetsBindingObserver {
-  /// Tracks the position while the user drags the seek bar.
   final BehaviorSubject<double> _dragPositionSubject =
       BehaviorSubject.seeded(null);
 
@@ -234,8 +238,33 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     }
   }
 
+  List<Map<String, Object>> _pages;
+
   void initState() {
     super.initState();
+    _pages = [
+      {
+        'page': LatestHot100Throwback(
+          song: widget.bloc,
+        ),
+        'title': 'Latest',
+      },
+      {
+        'page': Search(
+          song: widget.bloc,
+        ),
+        'title': 'Search',
+      },
+      {
+        'page': Album(),
+        'title': 'Album',
+      },
+      {
+        'page': Playlist(),
+        'title': 'Playlist',
+      },
+    ];
+
 //    _fetchSongs();
 //    connect();
 //    WidgetsBinding.instance.addObserver(this);
@@ -329,33 +358,17 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
       topRight: Radius.circular(10.0),
     );
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        leading: LoadingInfo(widget.bloc.isLoading),
-        actions: <Widget>[
-          Builder(
-            builder: (context) => IconButton(
-                icon: FaIcon(
-                  FontAwesomeIcons.search,
+      /*appBar: _currentIndex == 0
+          ? null
+          : AppBar(
+              title: Text(
+                _pages[_bottomNavigation.currentIndex]['title'],
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20.0,
                 ),
-                onPressed: () async {
-                  //TODO Play media
-                  final Data result = await showSearch<Data>(
-                    context: context,
-                    delegate: SongSearch(
-                      song: widget.bloc.songList,
-                    ),
-                  );
-                  Scaffold.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(result?.name),
-                    ),
-                  );
-                  print("RESULT ${result.name}");
-                }),
-          ),
-        ],
-      ),
+              ),
+            ),*/
       backgroundColor: Theme.of(context).backgroundColor,
       body: SlidingUpPanel(
         controller: _pc,
@@ -379,7 +392,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
             return snapshot.hasData
                 ? Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
+                      color: Theme.of(context).bottomAppBarColor,
                     ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -477,9 +490,10 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                   );
           },
         ),
-        body: StreamBuilder<UnmodifiableListView<Data>>(
+        body: _pages[_bottomNavigation.currentIndex]['page']
+        /*StreamBuilder<UnmodifiableListView<Data>>(
             initialData: UnmodifiableListView<Data>([]),
-            stream: widget.bloc.songList,
+            stream: widget.bloc.latestSongList,
             builder: (context, snapshot) {
 //              print('DATA: ${snapshot?.data}');
               return ListView.builder(
@@ -487,60 +501,76 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                 scrollDirection: Axis.vertical,
                 shrinkWrap: true,
                 physics: ClampingScrollPhysics(),
-                /*separatorBuilder: (context, index) => const Divider(
+                */ /*separatorBuilder: (context, index) => const Divider(
                   indent: 90.0,
                   thickness: 0.6,
                   endIndent: 10.0,
                   color: Colors.white30,
-                ),*/
+                ),*/ /*
                 itemCount: snapshot.data.length,
                 itemBuilder: (context, index) => _buildSong(
                   song: snapshot.data[index],
                 ),
               );
-            }),
+            })*/
+        ,
       ),
       bottomNavigationBar: _show
           ? BottomNavigationBar(
-              backgroundColor: Theme.of(context).primaryColor,
+              backgroundColor: Theme.of(context).bottomAppBarColor,
+
               currentIndex: _bottomNavigation.currentIndex,
+              showSelectedLabels: true,
+
               // this will be set when a new tab is tapped
               onTap: (index) {
                 _bottomNavigation.currentIndex = index;
+                _bottomNavigationIndex = index;
 
-                if (index == 0) {
-                  widget.bloc.songTypes.add(SongTypes.latest);
-                } else if (index == 1) {
-                  widget.bloc.songTypes.add(SongTypes.hot100);
-                } else {
-                  widget.bloc.songTypes.add(SongTypes.throwback);
-                }
+                /*if (index == 0) {
+                widget.bloc.songTypes.add(SongTypes.latest);
+              } else if (index == 1) {
+                widget.bloc.songTypes.add(SongTypes.hot100);
+              } else {
+                widget.bloc.songTypes.add(SongTypes.throwback);
+              }*/
               },
-              items: [
+              items: const [
                 BottomNavigationBarItem(
+//                  backgroundColor: Theme.of(context).bottomAppBarColor,
                   icon: const Icon(
-                    Icons.new_releases,
-                    color: kColorWSGreen,
+                    Icons.home,
+                    //color: kColorWSGreen,
                   ),
-                  title: const Text('Latest'),
+                  title: Text(''),
                 ),
                 BottomNavigationBarItem(
+//                  backgroundColor: Theme.of(context).bottomAppBarColor,
                   icon: const Icon(
-                    Icons.trending_up,
-                    color: kColorWSGreen,
+                    Icons.search,
+                    //color: kColorWSGreen,
                   ),
-                  title: const Text('Hot100'),
+                  title: Text(''),
                 ),
                 BottomNavigationBarItem(
+//                  backgroundColor: Theme.of(context).bottomAppBarColor,
                   icon: const Icon(
-                    Icons.folder_special,
-                    color: kColorWSGreen,
+                    Icons.album,
+                    //color: kColorWSGreen,
                   ),
-                  title: const Text(
-                    'Throw back',
+                  title: Text(''),
+                ),
+                BottomNavigationBarItem(
+//                  backgroundColor: Theme.of(context).bottomAppBarColor,
+                  icon: const Icon(
+                    Icons.playlist_play,
+                    //color: kColorWSGreen,
                   ),
-                )
+                  title: Text(''),
+                ),
               ],
+              showUnselectedLabels: true,
+              selectedItemColor: kColorWSGreen,
             )
           : null,
       /* floatingActionButton: FloatingActionButton(

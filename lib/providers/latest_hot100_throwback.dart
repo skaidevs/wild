@@ -15,8 +15,17 @@ enum SongTypes {
 
 class SongsNotifier with ChangeNotifier {
   Map<String, List<Data>> _cachedSongs;
-  Stream<UnmodifiableListView<Data>> get songList => _songsSubject.stream;
-  final _songsSubject = BehaviorSubject<UnmodifiableListView<Data>>();
+  Stream<UnmodifiableListView<Data>> get latestSongList =>
+      _latestSubject.stream;
+  Stream<UnmodifiableListView<Data>> get hot100SongList =>
+      _hot100Subject.stream;
+  Stream<UnmodifiableListView<Data>> get throwbackSongList =>
+      _throwbackSubject.stream;
+
+  final _latestSubject = BehaviorSubject<UnmodifiableListView<Data>>();
+  final _hot100Subject = BehaviorSubject<UnmodifiableListView<Data>>();
+  final _throwbackSubject = BehaviorSubject<UnmodifiableListView<Data>>();
+
   Sink<SongTypes> get songTypes => _songTypesController.sink;
   final _songTypesController = StreamController<SongTypes>();
   List<Data> songListData = [];
@@ -45,31 +54,51 @@ class SongsNotifier with ChangeNotifier {
     _initializeSongs();
     _songTypesController.stream.listen((songTypes) async {
       print("Invalid $_cachedSongs");
-      switch (songTypes) {
+      print('Latest1 ${_latestSubject.length}');
+
+      _getSongsAndUpdate(type: _songTypesIds[0], subject: _latestSubject);
+      print('Hot1001 ${_hot100Subject.length}');
+
+      _getSongsAndUpdate(type: _songTypesIds[1], subject: _hot100Subject);
+      print('Throw back1 ${_throwbackSubject.length}');
+
+      _getSongsAndUpdate(type: _songTypesIds[2], subject: throwbackSongList);
+      /*switch (songTypes) {
         case SongTypes.latest:
-          _getSongsAndUpdate(type: _songTypesIds[0]);
+          print('Latest1 ${_latestSubject.length}');
+          _getSongsAndUpdate(type: _songTypesIds[0], subject: _latestSubject);
           break;
         case SongTypes.hot100:
-          _getSongsAndUpdate(type: _songTypesIds[1]);
+          print('Hot1001 ${_hot100Subject.length}');
+
+          _getSongsAndUpdate(type: _songTypesIds[1], subject: _hot100Subject);
           break;
         case SongTypes.throwback:
-          _getSongsAndUpdate(type: _songTypesIds[2]);
+          print('Throw back1 ${_throwbackSubject.length}');
+
+          _getSongsAndUpdate(
+              type: _songTypesIds[2], subject: throwbackSongList);
           break;
         default:
           print("Invalid TYPE");
           break;
-      }
+      }*/
     });
   }
 
   Future<void> _initializeSongs() async {
-    _getSongsAndUpdate(type: await _getSongsIds(type: SongTypes.latest));
+    _getSongsAndUpdate(type: _songTypesIds[0], subject: _latestSubject);
+    _getSongsAndUpdate(type: _songTypesIds[1], subject: _hot100Subject);
+    _getSongsAndUpdate(type: _songTypesIds[2], subject: throwbackSongList);
+//    _getSongsAndUpdate(type: await _getSongsIds(type: SongTypes.latest));
   }
 
-  Future _getSongsAndUpdate({String type}) async {
+  Future _getSongsAndUpdate(
+      {BehaviorSubject<UnmodifiableListView<Data>> subject,
+      String type}) async {
     _isLoadingSubject.add(true);
     await _updateSongs(type);
-    _songsSubject.add(
+    subject.add(
       UnmodifiableListView(_songs),
     );
     _isLoadingSubject.add(false);
@@ -77,7 +106,7 @@ class SongsNotifier with ChangeNotifier {
 
   Future<Null> _updateSongs(songType) async {
     final futureSong = await _getSongs(type: songType);
-    print('object whats here: ${futureSong}');
+//    print('object whats here: ${futureSong}');
     _songs = futureSong;
   }
 
@@ -97,17 +126,20 @@ class SongsNotifier with ChangeNotifier {
         }
         Song song = Song.fromJson(extractedData);
         _cachedSongs[type] = song.data;
-        print("Check   ${_cachedSongs[type]}");
+//        print("Check   ${_cachedSongs[type]}");
       } else {
         throw WildStreamError('Songs $type could not be fetched.');
       }
     }
-    print("_cachedSongs   ${_cachedSongs[type]}");
+//    print("_cachedSongs   ${_cachedSongs[type]}");
     return _cachedSongs[type];
   }
 
   void close() {
-    _songsSubject.close();
+    _throwbackSubject.close();
+    _hot100Subject.close();
+    _latestSubject.close();
+
     _songTypesController.close();
     _isLoadingSubject.close();
   }
