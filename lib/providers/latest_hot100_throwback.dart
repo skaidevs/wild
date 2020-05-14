@@ -49,10 +49,12 @@ class SongsNotifier with ChangeNotifier {
 
   SongsNotifier() : _cachedSongs = Map() {
     //_cachedSongs = Map<String, List<Data>>();
-    _initializeSongs().then((_) {
-      _isLoading = false;
-      notifyListeners();
-    });
+    _initializeSongs().then(
+      (_) => fetchMediaList().then((value) {
+        _isLoading = false;
+        notifyListeners();
+      }),
+    );
     print('Called SongsNotifier?');
   }
 
@@ -110,37 +112,32 @@ class SongsNotifier with ChangeNotifier {
     MediaItem _media;
     print("_latestSubject ${_latestSongList?.length}");
 
-    if (_latestSongList != null) {
-      await _startPlayer();
-      _songListData.forEach((media) async {
-        _mediaList.add(MediaItem(
-          id: media.songFile.songUrl,
-          album: media.name,
-          title: media.name,
-          artist: media.artistsToString,
-          duration: media.duration,
-          artUri: media.songArt.crops.crop500,
-        ));
-
-        print('MediaItems >: ${_mediaList.toList()}');
-        notifyListeners();
-      });
-      print("addQueueItem from api ${_mediaList.length}");
-
-      print("Called last? ${_media.title}");
-
-      await AudioService.addQueueItems(mediaList);
-      AudioService.play();
-    }
-    /*var _lastQueuedItems = AudioService.queue;
+    var _lastQueuedItems = AudioService.queue;
     if (_lastQueuedItems == null || _lastQueuedItems.isEmpty) {
+      if (_latestSongList != null) {
+        await _startPlayer();
+        _latestSongList.forEach((media) async {
+          _mediaList.add(MediaItem(
+            id: media.songFile.songUrl,
+            album: media.name,
+            title: media.name,
+            artist: media.artistsToString,
+            duration: media.duration,
+            artUri: media.songArt.crops.crop500,
+          ));
+          print('MediaItems >: ${_mediaList.toList()}');
+          notifyListeners();
+        });
+        print('Called Last?: ${_mediaList.toList()}');
 
+        await AudioService.addQueueItems(mediaList);
+        AudioService.play();
+      }
     } else {
       print("length is Not 0 ${_lastQueuedItems.length} ");
-      _isLoadingSubject.add(false);
 
       return null;
-    }*/
+    }
     return _mediaList;
   }
 

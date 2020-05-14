@@ -1,10 +1,10 @@
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/shape/gf_avatar_shape.dart';
+import 'package:provider/provider.dart';
 import 'package:wildstream/models/song.dart';
+import 'package:wildstream/providers/latest_hot100_throwback.dart';
 import 'package:wildstream/widgets/commons.dart';
 
 class SongSearch extends SearchDelegate<Data> {
@@ -34,19 +34,17 @@ class SongSearch extends SearchDelegate<Data> {
 
   @override
   Widget buildResults(BuildContext context) {
-    return StreamBuilder<UnmodifiableListView<Data>>(
-//      stream: Provider.of<SongsNotifier>(context).hot100SongList,
-      builder: (context, AsyncSnapshot<UnmodifiableListView<Data>> snapshot) {
-        if (!snapshot.hasData) {
+    return Consumer<SongsNotifier>(
+      builder: (context, notifier, _) {
+        if (notifier.latestSongList.isEmpty) {
           return Center(
             child: Text('NO DATA'),
           );
         }
 
-        final results = snapshot.data.where(
+        final results = notifier.latestSongList.where(
           (song) => song.name.toLowerCase().contains(query),
         );
-
         return Container(
           color: Theme.of(context).backgroundColor,
           child: ListView(
@@ -75,10 +73,9 @@ class SongSearch extends SearchDelegate<Data> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return StreamBuilder<UnmodifiableListView<Data>>(
-//      stream: Provider.of<SongsNotifier>(context).hot100SongList,
-      builder: (context, AsyncSnapshot<UnmodifiableListView<Data>> snapshot) {
-        if (!snapshot.hasData) {
+    return Consumer<SongsNotifier>(
+      builder: (context, notifier, _) {
+        if (notifier.latestSongList.isEmpty) {
           return Center(
             child: Text(
               'NO DATA',
@@ -87,10 +84,9 @@ class SongSearch extends SearchDelegate<Data> {
           );
         }
 
-        final results = snapshot.data.where(
+        final results = notifier.latestSongList.where(
           (song) => song.name.toLowerCase().contains(query),
         );
-
         return Container(
           color: Theme.of(context).backgroundColor,
           child: ListView(

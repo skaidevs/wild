@@ -52,21 +52,21 @@ class Latest extends StatelessWidget {
             song: notifier.latestSongList[index],
             onTap: () async {
               LoadingInfo();
-//                        await Provider.of<SongsNotifier>(
-//                          context,
-//                          listen: false,
-//                        ).fetchMediaList().then((mediaList) async {
-//                          AudioService.playFromMediaId(mediaList[index].id);
-//                          AudioService.play();
-//                          print("Taped ${mediaList[index].title}");
-//                          if (mediaList[index].id ==
-//                              snapshot.data[index].songFile.songUrl) {
-//                          } else {
-//                            print("Cant play  ${mediaList[index].title}");
-//
-//                            return;
-//                          }
-//                        });
+              await Provider.of<SongsNotifier>(
+                context,
+                listen: false,
+              ).fetchMediaList().then((_) async {
+                AudioService.playFromMediaId(notifier.mediaList[index].id);
+                AudioService.play();
+                /*print("Taped ${mediaList[index].title}");
+                          if (mediaList[index].id ==
+                              snapshot.data[index].songFile.songUrl) {
+                          } else {
+                            print("Cant play  ${mediaList[index].title}");
+
+                            return;
+                          }*/
+              });
 
               /*MediaItem mediaItem = _addMedia.mediaList[index];
                     AudioService.playFromMediaId(mediaItem.id);
