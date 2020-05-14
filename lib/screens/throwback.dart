@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/shape/gf_avatar_shape.dart';
@@ -14,7 +15,10 @@ class Throwback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print("Throwback Build");
-
+    final _songNotifier = Provider.of<SongsNotifier>(
+      context,
+      listen: false,
+    );
     return Container(
       padding: Platform.isIOS
           ? const EdgeInsets.fromLTRB(
@@ -48,6 +52,14 @@ class Throwback extends StatelessWidget {
           itemCount: notifier.throwbackSongList.length,
           itemBuilder: (context, index) => BuildSongItem(
             song: notifier.throwbackSongList[index],
+            onTap: () {
+              AudioService.playFromMediaId(
+                  _songNotifier.throwbackSongList[index].songFile.songUrl);
+              AudioService.play();
+
+              print(
+                  'Tapped from ThroBack ${_songNotifier.throwbackSongList[index].songFile.songUrl}');
+            },
           ),
         );
       }),

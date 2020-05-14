@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/shape/gf_avatar_shape.dart';
@@ -14,6 +15,10 @@ class Hot100 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print("Hot Build");
+    final _songNotifier = Provider.of<SongsNotifier>(
+      context,
+      listen: false,
+    );
     return Container(
       padding: Platform.isIOS
           ? const EdgeInsets.fromLTRB(
@@ -49,6 +54,12 @@ class Hot100 extends StatelessWidget {
             song: notifier.hot100SongList[index],
             index: index + 1,
             hot100: 'hot100',
+            onTap: () {
+              AudioService.playFromMediaId(
+                  _songNotifier.hot100SongList[index].songFile.songUrl);
+              AudioService.play();
+              print('Tapped from Hot100 ${_songNotifier.mediaList[index].id}');
+            },
           ),
         );
       }),

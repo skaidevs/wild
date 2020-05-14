@@ -52,7 +52,8 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
   MediaItem get mediaItem => _queue[_queueIndex];
 
   MediaItem findMediaById({String mediaId}) {
-    return _queue.firstWhere((media) => media.id == mediaId);
+    return _queue.firstWhere((media) => media.id == mediaId,
+        orElse: () => null);
   }
 
   BasicPlaybackState _eventToBasicState(AudioPlaybackEvent event) {
@@ -128,10 +129,11 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
     if (_playing == false) {
       _playing = true;
     }
-    print("onPlayFromMediaId Called.. $_playing");
     _mediaItemIndex = findMediaById(mediaId: mediaId);
     _playFromIdIndex = _queue.indexOf(_mediaItemIndex);
-    print("index $_playFromIdIndex");
+    print("index $_playFromIdIndex amd ${_queue[127].title}");
+    print("onPlayFromMediaId Called.. ${_queue.length}");
+
     _skip(_playFromIdIndex);
 //    AudioServiceBackground.setQueue(_queue);
     AudioServiceBackground.sendCustomEvent('onPlayFromMediaId @index');
