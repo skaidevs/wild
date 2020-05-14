@@ -2,9 +2,10 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:rxdart/subjects.dart';
+import 'package:wildstream/helpers/background.dart';
 import 'package:wildstream/models/song.dart';
 
 enum SongTypes {
@@ -12,112 +13,76 @@ enum SongTypes {
   hot100,
   throwback,
 }
+const _baseUrl = 'https://www.wildstream.ng/api/songs?type=';
 
 class SongsNotifier with ChangeNotifier {
   Map<String, List<Data>> _cachedSongs;
-  Stream<UnmodifiableListView<Data>> get latestSongList =>
-      _latestSubject.stream;
-  Stream<UnmodifiableListView<Data>> get hot100SongList =>
-      _hot100Subject.stream;
-  Stream<UnmodifiableListView<Data>> get throwbackSongList =>
-      _throwbackSubject.stream;
-
-  final _latestSubject = BehaviorSubject<UnmodifiableListView<Data>>();
-  final _hot100Subject = BehaviorSubject<UnmodifiableListView<Data>>();
-  final _throwbackSubject = BehaviorSubject<UnmodifiableListView<Data>>();
-
-  Sink<SongTypes> get songTypes => _songTypesController.sink;
-  final _songTypesController = StreamController<SongTypes>();
-  List<Data> songListData = [];
-
-  var _songs = <Data>[];
-
-//  Future<Song> loadSongs({String songType}) async {
-//    return _getSongsAndUpdate(ids: );
-//  }
-
   static List<String> _songTypesIds = [
     'latest',
     'hot_100',
     'throw_back',
   ];
 
-  Stream<bool> get isLoading => _isLoadingSubject.stream;
-  final _isLoadingSubject = BehaviorSubject<bool>.seeded(false);
+  List<Data> _latestSongList = [];
+  UnmodifiableListView<Data> get latestSongList =>
+      UnmodifiableListView(_latestSongList);
 
-  Future<String> _getSongsIds({SongTypes type}) async {
-    return _songTypesIds[0];
+  List<Data> _hot100SongList = [];
+  UnmodifiableListView<Data> get hot100SongList =>
+      UnmodifiableListView(_hot100SongList);
+
+  List<Data> _throwbackSongList = [];
+  UnmodifiableListView<Data> get throwbackSongList =>
+      UnmodifiableListView(_throwbackSongList);
+
+  List<Data> _songListData = [];
+  UnmodifiableListView<Data> get songListData =>
+      UnmodifiableListView(_songListData);
+
+  List<MediaItem> _mediaList = [];
+  List<MediaItem> get mediaList {
+    return [..._mediaList];
   }
 
-  SongsNotifier() {
-    _cachedSongs = Map<String, List<Data>>();
-    _initializeSongs();
-    _songTypesController.stream.listen((songTypes) async {
-      print("Invalid $_cachedSongs");
-      print('Latest1 ${_latestSubject.length}');
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
 
-      _getSongsAndUpdate(type: _songTypesIds[0], subject: _latestSubject);
-      print('Hot1001 ${_hot100Subject.length}');
-
-      _getSongsAndUpdate(type: _songTypesIds[1], subject: _hot100Subject);
-      print('Throw back1 ${_throwbackSubject.length}');
-
-      _getSongsAndUpdate(type: _songTypesIds[2], subject: throwbackSongList);
-      /*switch (songTypes) {
-        case SongTypes.latest:
-          print('Latest1 ${_latestSubject.length}');
-          _getSongsAndUpdate(type: _songTypesIds[0], subject: _latestSubject);
-          break;
-        case SongTypes.hot100:
-          print('Hot1001 ${_hot100Subject.length}');
-
-          _getSongsAndUpdate(type: _songTypesIds[1], subject: _hot100Subject);
-          break;
-        case SongTypes.throwback:
-          print('Throw back1 ${_throwbackSubject.length}');
-
-          _getSongsAndUpdate(
-              type: _songTypesIds[2], subject: throwbackSongList);
-          break;
-        default:
-          print("Invalid TYPE");
-          break;
-      }*/
+  SongsNotifier() : _cachedSongs = Map() {
+    //_cachedSongs = Map<String, List<Data>>();
+    _initializeSongs().then((_) {
+      _isLoading = false;
+      notifyListeners();
     });
+    print('Called SongsNotifier?');
   }
 
   Future<void> _initializeSongs() async {
-    _getSongsAndUpdate(type: _songTypesIds[0], subject: _latestSubject);
-    _getSongsAndUpdate(type: _songTypesIds[1], subject: _hot100Subject);
-    _getSongsAndUpdate(type: _songTypesIds[2], subject: throwbackSongList);
-//    _getSongsAndUpdate(type: await _getSongsIds(type: SongTypes.latest));
-  }
-
-  Future _getSongsAndUpdate(
-      {BehaviorSubject<UnmodifiableListView<Data>> subject,
-      String type}) async {
-    _isLoadingSubject.add(true);
-    await _updateSongs(type);
-    subject.add(
-      UnmodifiableListView(_songs),
+    _latestSongList = _songListData = await _updateSongs(
+      songType: _songTypesIds[0],
     );
-    _isLoadingSubject.add(false);
+    _hot100SongList = _songListData = await _updateSongs(
+      songType: _songTypesIds[1],
+    );
+    _throwbackSongList = _songListData = await _updateSongs(
+      songType: _songTypesIds[2],
+    );
   }
 
-  Future<Null> _updateSongs(songType) async {
+  Future<List<Data>> _updateSongs({String songType}) async {
+    _isLoading = true;
+    notifyListeners();
     final futureSong = await _getSongs(type: songType);
-//    print('object whats here: ${futureSong}');
-    _songs = futureSong;
+    return futureSong;
   }
-
-  static const _baseUrl = 'https://www.wildstream.ng/api/songs?type=';
 
   Future<List<Data>> _getSongs({String type}) async {
     String token =
-        'u8BC3Y6XaWGlplNldAljni4YHbiCSlsTKTteiGe4E9ibaN49rf5pcZRcDkz40zOky8oZeuDXYdRCj15rGbpp66ThucN8OAb735gbvnhEJNN6aSIz0ck0RjDzbjVmKZHan5pYUlriitSCNDDPWRYriumIB1R8HlPmVWO7IQ5k6TQNvEWSNduaMB7IuKHknbVPGqodBtlf';
-    print("_cachedSongs.containsKey(type)   $type");
+        'cfM0jinT1a0wVvBr7iJNY6LpbaqlnMPhZeuQv4ln6K0oXK8KnDEbIHBDLNXMKpnTKZjvc3vPkkdpRkaTrZL8dZh6iDS28FVa6tCZsOz8zz5OEcEcBIhQbpRG1k3eeJpkZRCyDtRFS91vQKZZ3vl1QTbxHoTEuIpyXwzQeiPpwwTSPXmv21eIWuio8mKBqc1JrGyU573M';
+    print("(type)   $type");
 
     if (!_cachedSongs.containsKey(type)) {
+      print("Check?????");
+
       final songsResponse = await http.get('$_baseUrl$type&token=$token');
       if (songsResponse.statusCode == 200) {
         var extractedData = json.decode(songsResponse.body);
@@ -126,22 +91,67 @@ class SongsNotifier with ChangeNotifier {
         }
         Song song = Song.fromJson(extractedData);
         _cachedSongs[type] = song.data;
-//        print("Check   ${_cachedSongs[type]}");
+//        print("Check   ${latestSongList.length}");
       } else {
-        throw WildStreamError('Songs $type could not be fetched.');
+        throw WildStreamError(
+            'Songs $type could not be fetched. {{}} ${songsResponse.body}');
       }
     }
-//    print("_cachedSongs   ${_cachedSongs[type]}");
+
+    print("_cachedSongs   ${_cachedSongs[type]}");
     return _cachedSongs[type];
   }
 
-  void close() {
-    _throwbackSubject.close();
-    _hot100Subject.close();
-    _latestSubject.close();
+  MediaItem findMediaById({String mediaId}) {
+    return mediaList.firstWhere((media) => media.id == mediaId);
+  }
 
-    _songTypesController.close();
-    _isLoadingSubject.close();
+  Future<List<MediaItem>> fetchMediaList() async {
+    MediaItem _media;
+    print("_latestSubject ${_latestSongList?.length}");
+
+    if (_latestSongList != null) {
+      await _startPlayer();
+      _songListData.forEach((media) async {
+        _mediaList.add(MediaItem(
+          id: media.songFile.songUrl,
+          album: media.name,
+          title: media.name,
+          artist: media.artistsToString,
+          duration: media.duration,
+          artUri: media.songArt.crops.crop500,
+        ));
+
+        print('MediaItems >: ${_mediaList.toList()}');
+        notifyListeners();
+      });
+      print("addQueueItem from api ${_mediaList.length}");
+
+      print("Called last? ${_media.title}");
+
+      await AudioService.addQueueItems(mediaList);
+      AudioService.play();
+    }
+    /*var _lastQueuedItems = AudioService.queue;
+    if (_lastQueuedItems == null || _lastQueuedItems.isEmpty) {
+
+    } else {
+      print("length is Not 0 ${_lastQueuedItems.length} ");
+      _isLoadingSubject.add(false);
+
+      return null;
+    }*/
+    return _mediaList;
+  }
+
+  _startPlayer() async {
+    await AudioService.start(
+      backgroundTaskEntrypoint: _audioPlayerTaskEntryPoint,
+      androidNotificationChannelName: 'WildStream',
+      notificationColor: 0xFF0A0A0A,
+      androidNotificationIcon: 'drawable/ic_notification',
+      enableQueue: true,
+    );
   }
 }
 
@@ -149,6 +159,10 @@ class WildStreamError {
   final String message;
 
   WildStreamError(this.message);
+}
+
+void _audioPlayerTaskEntryPoint() async {
+  AudioServiceBackground.run(() => AudioPlayerTask());
 }
 
 class Hot100List with ChangeNotifier {

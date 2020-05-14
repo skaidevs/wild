@@ -7,9 +7,6 @@ import 'package:wildstream/widgets/commons.dart';
 import 'package:wildstream/widgets/search_song.dart';
 
 class Search extends StatelessWidget {
-  final song;
-  const Search({Key key, this.song}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,9 +22,7 @@ class Search extends StatelessWidget {
                 onPressed: () async {
                   final Data result = await showSearch<Data>(
                     context: context,
-                    delegate: SongSearch(
-                      song: song.hot100SongList,
-                    ),
+                    delegate: SongSearch(),
                   );
                   kFlutterToast(
                     context: context,

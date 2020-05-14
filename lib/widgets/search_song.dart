@@ -8,9 +8,6 @@ import 'package:wildstream/models/song.dart';
 import 'package:wildstream/widgets/commons.dart';
 
 class SongSearch extends SearchDelegate<Data> {
-  final Stream<UnmodifiableListView<Data>> song;
-
-  SongSearch({this.song});
   @override
   List<Widget> buildActions(BuildContext context) {
     return [
@@ -24,6 +21,9 @@ class SongSearch extends SearchDelegate<Data> {
   }
 
   @override
+  String get searchFieldLabel => 'Search Wildstream';
+
+  @override
   Widget buildLeading(BuildContext context) {
     return IconButton(
         icon: FaIcon(FontAwesomeIcons.arrowLeft),
@@ -35,7 +35,7 @@ class SongSearch extends SearchDelegate<Data> {
   @override
   Widget buildResults(BuildContext context) {
     return StreamBuilder<UnmodifiableListView<Data>>(
-      stream: song,
+//      stream: Provider.of<SongsNotifier>(context).hot100SongList,
       builder: (context, AsyncSnapshot<UnmodifiableListView<Data>> snapshot) {
         if (!snapshot.hasData) {
           return Center(
@@ -76,7 +76,7 @@ class SongSearch extends SearchDelegate<Data> {
   @override
   Widget buildSuggestions(BuildContext context) {
     return StreamBuilder<UnmodifiableListView<Data>>(
-      stream: song,
+//      stream: Provider.of<SongsNotifier>(context).hot100SongList,
       builder: (context, AsyncSnapshot<UnmodifiableListView<Data>> snapshot) {
         if (!snapshot.hasData) {
           return Center(

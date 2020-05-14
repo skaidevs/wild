@@ -1,18 +1,16 @@
-import 'dart:collection';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/shape/gf_avatar_shape.dart';
+import 'package:provider/provider.dart';
 import 'package:wildstream/models/song.dart';
+import 'package:wildstream/providers/latest_hot100_throwback.dart';
 import 'package:wildstream/widgets/build_song_item.dart';
 import 'package:wildstream/widgets/commons.dart';
+import 'package:wildstream/widgets/loadingInfo.dart';
 
 class Throwback extends StatelessWidget {
-  final song;
-
-  const Throwback({Key key, this.song}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     print("Throwback Build");
@@ -32,28 +30,27 @@ class Throwback extends StatelessWidget {
               120.0,
             ),
       color: Theme.of(context).backgroundColor,
-      child: StreamBuilder<UnmodifiableListView<Data>>(
-          initialData: UnmodifiableListView<Data>([]),
-          stream: song.throwbackSongList,
-          builder: (context, snapshot) {
-//              print('DATA: ${snapshot?.data}');
-            return ListView.builder(
-              padding: const EdgeInsets.all(2.0),
-              scrollDirection: Axis.vertical,
-              shrinkWrap: true,
-              physics: ClampingScrollPhysics(),
-              /*separatorBuilder: (context, index) => const Divider(
-                indent: 90.0,
-                thickness: 0.6,
-                endIndent: 10.0,
-                color: Colors.white30,
-              ),*/
-              itemCount: snapshot.data.length,
-              itemBuilder: (context, index) => BuildSongItem(
-                song: snapshot.data[index],
-              ),
-            );
-          }),
+      child: Consumer<SongsNotifier>(builder: (context, notifier, _) {
+        if (notifier.isLoading) {
+          return LoadingInfo();
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(2.0),
+          scrollDirection: Axis.vertical,
+          shrinkWrap: true,
+          physics: ClampingScrollPhysics(),
+          /*separatorBuilder: (context, index) => const Divider(
+                  indent: 90.0,
+                  thickness: 0.6,
+                  endIndent: 10.0,
+                  color: Colors.white30,
+                ),*/
+          itemCount: notifier.throwbackSongList.length,
+          itemBuilder: (context, index) => BuildSongItem(
+            song: notifier.throwbackSongList[index],
+          ),
+        );
+      }),
     );
   }
 

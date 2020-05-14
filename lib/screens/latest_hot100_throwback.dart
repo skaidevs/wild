@@ -36,15 +36,9 @@ class _LatestHot100ThrowbackState extends State<LatestHot100Throwback>
 
   Widget getTabBarPages() {
     return TabBarView(controller: _tabController, children: <Widget>[
-      Latest(
-        song: widget.song,
-      ),
-      Hot100(
-        song: widget.song,
-      ),
-      Throwback(
-        song: widget.song,
-      ),
+      Latest(),
+      Hot100(),
+      Throwback(),
     ]);
   }
 

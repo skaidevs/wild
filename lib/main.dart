@@ -23,21 +23,10 @@ import 'package:wildstream/screens/playlist.dart';
 import 'package:wildstream/screens/search.dart';
 import 'package:wildstream/widgets/commons.dart';
 
-//void main() => runApp(WildStreamApp());
-void main() {
-  final hcBloc = SongsNotifier();
-  runApp(
-    WildStreamApp(
-      bloc: hcBloc,
-    ),
-  );
-}
+void main() => runApp(WildStreamApp());
 
 class WildStreamApp extends StatelessWidget {
   // This widget is the root of your application.
-  final SongsNotifier bloc;
-
-  const WildStreamApp({Key key, this.bloc}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +63,6 @@ class WildStreamApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         home: AudioServiceWidget(
           child: WildStreamHomePage(
-            bloc: bloc,
             title: 'WildStream',
           ),
         ),
@@ -85,9 +73,7 @@ class WildStreamApp extends StatelessWidget {
 
 class WildStreamHomePage extends StatefulWidget {
   final String title;
-  final SongsNotifier bloc;
-
-  WildStreamHomePage({Key key, this.title, this.bloc}) : super(key: key);
+  WildStreamHomePage({Key key, this.title}) : super(key: key);
 
   @override
   _WildStreamHomePageState createState() => _WildStreamHomePageState();
@@ -173,17 +159,15 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
 
   void initState() {
     super.initState();
+    connect();
+    WidgetsBinding.instance.addObserver(this);
     _pages = [
       {
-        'page': LatestHot100Throwback(
-          song: widget.bloc,
-        ),
+        'page': LatestHot100Throwback(),
         'title': 'Latest',
       },
       {
-        'page': Search(
-          song: widget.bloc,
-        ),
+        'page': Search(),
         'title': 'Search',
       },
       {
@@ -197,13 +181,12 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     ];
 
 //    _fetchSongs();
-//    connect();
-//    WidgetsBinding.instance.addObserver(this);
-////    this._startPlayer();
+
+//    this._startPlayer();
 //    this._fetchData();
   }
 
-  _startPlayer() async {
+  /*_startPlayer() async {
 //    connect();
     await AudioService.start(
       backgroundTaskEntrypoint: _audioPlayerTaskEntryPoint,
@@ -212,7 +195,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
       androidNotificationIcon: 'drawable/ic_notification',
       enableQueue: true,
     );
-  }
+  }*/
 
   void showBottomBar() {
     setState(() {
@@ -601,8 +584,4 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
           playbackState: playbackState,
         ),
       );
-}
-
-void _audioPlayerTaskEntryPoint() async {
-  AudioServiceBackground.run(() => AudioPlayerTask());
 }

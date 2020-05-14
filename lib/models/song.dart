@@ -84,10 +84,12 @@ class SongArt with ChangeNotifier {
 
 class Crops with ChangeNotifier {
   final String crop500;
-  Crops({this.crop500});
+  final String crop100;
+  Crops({this.crop500, this.crop100});
 
   factory Crops.fromJson(Map<String, dynamic> parsedJson) {
     return Crops(
+      crop100: parsedJson['100'] as String,
       crop500: parsedJson['500'] as String,
     );
   }

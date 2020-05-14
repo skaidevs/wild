@@ -1,21 +1,36 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/shape/gf_avatar_shape.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:wildstream/helpers/screen_state.dart';
+import 'package:wildstream/models/song.dart';
 import 'package:wildstream/widgets/commons.dart';
 
 class BuildSongItem extends StatelessWidget {
-  final song;
+  final Data song;
   final int index;
   final String hot100;
+  final Function onTap;
+  final MediaItem mediaItem;
 
-  const BuildSongItem({Key key, this.song, this.index, this.hot100})
-      : super(key: key);
+  const BuildSongItem({
+    Key key,
+    this.song,
+    this.index,
+    this.hot100,
+    this.onTap,
+    this.mediaItem,
+  }) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    MediaItem _mediaItem;
+    _mediaItem = mediaItem;
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: 6.0,
-        vertical: 8.0,
+        horizontal: 4.0,
+        vertical: 6.0,
       ),
       child: ListTile(
         key: PageStorageKey(0),
@@ -29,7 +44,7 @@ class BuildSongItem extends StatelessWidget {
                     ),
                     shape: GFAvatarShape.standard,
                     size: 38.0,
-                    backgroundImage: NetworkImage(song.songArt.artUrl),
+                    backgroundImage: NetworkImage(song.songArt.crops.crop100),
                   ),
                   Container(
                     padding: const EdgeInsets.all(4.0),
@@ -55,8 +70,8 @@ class BuildSongItem extends StatelessWidget {
                   Radius.circular(6.0),
                 ),
                 shape: GFAvatarShape.standard,
-                size: 38.0,
-                backgroundImage: NetworkImage(song.songArt.artUrl),
+                size: 36.0,
+                backgroundImage: NetworkImage(song.songArt.crops.crop100),
               ),
         title: Text(
           '${song.name}',
@@ -73,17 +88,13 @@ class BuildSongItem extends StatelessWidget {
             style: TextStyle(color: kColorWSGreen),
           ),
         ),
-        trailing: Icon(
-          Icons.more_horiz,
-          color: kColorWSGreen,
-        ),
-        /*StreamBuilder<ScreenState>(
+        trailing: StreamBuilder<ScreenState>(
           stream: _screenStateStream,
           builder: (context, snapshot) {
             final screenState = snapshot.data;
-            mediaItem = screenState?.mediaItem;
+            _mediaItem = screenState?.mediaItem;
 
-            if (mediaItem?.id == data.hot100MediaList[index].id) {
+            if (_mediaItem?.id == song.songFile.songUrl) {
               return _mediaIndicator();
             } else {
               return Icon(
@@ -92,14 +103,34 @@ class BuildSongItem extends StatelessWidget {
               );
             }
           },
-        ),*/
-        onTap: () async {
-          print("Taped");
-//          mediaItem = data.hot100MediaList[index];
-//          AudioService.playFromMediaId(mediaItem.id);
-        },
+        ),
+        onTap: onTap,
         selected: true,
       ),
     );
   }
+
+  FaIcon _mediaIndicator() {
+    return FaIcon(
+      FontAwesomeIcons.volumeUp,
+      color: kColorWSGreen,
+    );
+  }
+
+  Stream<ScreenState> get _screenStateStream =>
+      Rx.combineLatest3<List<MediaItem>, MediaItem, PlaybackState, ScreenState>(
+        AudioService.queueStream,
+        AudioService.currentMediaItemStream,
+        AudioService.playbackStateStream,
+        (
+          queue,
+          mediaItem,
+          playbackState,
+        ) =>
+            ScreenState(
+          queue: queue,
+          mediaItem: mediaItem,
+          playbackState: playbackState,
+        ),
+      );
 }
