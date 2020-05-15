@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:wildstream/providers/recorded_stream_download.dart';
 
 MediaControl playControl = MediaControl(
   androidIcon: 'drawable/ic_action_play_arrow',
@@ -50,6 +52,9 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
   bool get hasPrevious => _queueIndex > 0;
 
   MediaItem get mediaItem => _queue[_queueIndex];
+
+  BuildContext get context => null;
+  RecordedStreamDownload _streamDownload = RecordedStreamDownload();
 
   MediaItem findMediaById({String mediaId}) {
     return _queue.firstWhere((media) => media.id == mediaId,
@@ -248,12 +253,14 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
     //TODO: onPause() Before going to next
 
 //    onPause();
-    print("onPause() Before going to next ${_skipState}");
+    print("onPause() Before going to next $_skipState");
     try {
       await _audioPlayer.setUrl(mediaItem.id);
     } catch (error) {
       print("error setUrl ${error.toString()}");
     }
+    await _streamDownload.streamCount(code: mediaItem.extras['code']);
+
     _skipState = null;
     _playFromIdIndex = null;
 

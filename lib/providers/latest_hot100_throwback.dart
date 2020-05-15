@@ -13,7 +13,9 @@ enum SongTypes {
   hot100,
   throwback,
 }
-const _baseUrl = 'https://www.wildstream.ng/api/songs?type=';
+const baseUrl = 'https://www.wildstream.ng/api/';
+const token =
+    'cfM0jinT1a0wVvBr7iJNY6LpbaqlnMPhZeuQv4ln6K0oXK8KnDEbIHBDLNXMKpnTKZjvc3vPkkdpRkaTrZL8dZh6iDS28FVa6tCZsOz8zz5OEcEcBIhQbpRG1k3eeJpkZRCyDtRFS91vQKZZ3vl1QTbxHoTEuIpyXwzQeiPpwwTSPXmv21eIWuio8mKBqc1JrGyU573M';
 
 class SongsNotifier with ChangeNotifier {
   Map<String, List<Data>> _cachedSongs;
@@ -84,13 +86,15 @@ class SongsNotifier with ChangeNotifier {
     await _startPlayer();
     combinationSongList.forEach((media) async {
       _mediaList.add(MediaItem(
-        id: media.songFile.songUrl,
-        album: media.name,
-        title: media.name,
-        artist: media.artistsToString,
-        duration: media.duration,
-        artUri: media.songArt.crops.crop500,
-      ));
+          id: media.songFile.songUrl,
+          album: media.name,
+          title: media.name,
+          artist: media.artistsToString,
+          duration: media.duration,
+          artUri: media.songArt.crops.crop500,
+          extras: {
+            'code': media.code,
+          }));
       //print('MediaItems CONVERTED >: ${_mediaList.toList()}');
     });
   }
@@ -115,12 +119,11 @@ class SongsNotifier with ChangeNotifier {
   }
 
   Future<List<Data>> _getSongs({String type}) async {
-    String token =
-        'cfM0jinT1a0wVvBr7iJNY6LpbaqlnMPhZeuQv4ln6K0oXK8KnDEbIHBDLNXMKpnTKZjvc3vPkkdpRkaTrZL8dZh6iDS28FVa6tCZsOz8zz5OEcEcBIhQbpRG1k3eeJpkZRCyDtRFS91vQKZZ3vl1QTbxHoTEuIpyXwzQeiPpwwTSPXmv21eIWuio8mKBqc1JrGyU573M';
     print("Song Type   $type");
 
     if (!_cachedSongs.containsKey(type)) {
-      final songsResponse = await http.get('$_baseUrl$type&token=$token');
+      final songsResponse =
+          await http.get('$baseUrl${'songs?type='}$type&token=$token');
       if (songsResponse.statusCode == 200) {
         var extractedData = json.decode(songsResponse.body);
         if (extractedData == null) {
