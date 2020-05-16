@@ -33,7 +33,7 @@ class BuildSongItem extends StatelessWidget {
         vertical: 6.0,
       ),
       child: ListTile(
-        key: PageStorageKey(0),
+        //key: PageStorageKey(0),
         leading: hot100 == 'hot100'
             ? Stack(
                 alignment: const Alignment(1.0, 1.0),

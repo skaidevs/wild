@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:wildstream/providers/recorded_stream_download.dart';
 
@@ -53,7 +52,6 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
 
   MediaItem get mediaItem => _queue[_queueIndex];
 
-  BuildContext get context => null;
   RecordedStreamDownload _streamDownload = RecordedStreamDownload();
 
   MediaItem findMediaById({String mediaId}) {
@@ -90,14 +88,16 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
     var playerStateSubscription = _audioPlayer.playbackStateStream
         .where((state) => state == AudioPlaybackState.completed)
         .listen((state) {
-      print("playerStateSubscription... $state POSITION $_queueIndex");
+      print("playerStateSubscription... ${mediaItem.duration} $_queueIndex");
+
       _handlePlaybackCompleted();
     });
+    print("StateSubscription... $playerStateSubscription");
+
     var eventSubscription = _audioPlayer.playbackEventStream.listen((event) {
       print("eventSubscription position ${event.state} ");
       final state = _eventToBasicState(event);
       if (state != BasicPlaybackState.stopped) {
-        print("eventSubscription...  ${state.toString()}");
         _setState(
           state: state,
           position: event.position.inMilliseconds,
@@ -184,13 +184,38 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
       final state = _audioPlayer.playbackState;
       Duration position = Duration(milliseconds: 1000);
       if (state == AudioPlaybackState.completed) {
-        print("state repeat $state $_isRepeatEnable");
+        print(
+            "state repeat ${position.inMilliseconds} $state $_isRepeatEnable");
         _audioPlayer.seek(position);
         onPlay();
       }
     } else {
       onStop();
     }
+    _sendStreamCount();
+  }
+
+  void _sendStreamCount() async {
+    try {
+      await _streamDownload.streamCount(code: mediaItem.extras['code']);
+      print('send stream count true');
+    } catch (e) {
+      print('Error sending strem count $e');
+    }
+    /*final state = _audioPlayer.playbackState;
+    var _mediaDuration = mediaItem.duration;
+    var _durationInPercentage = (mediaItem.duration * 20 / 100);
+
+    if (state == AudioPlaybackState.completed &&
+        _durationInPercentage <= _mediaDuration) {
+      print("STATE111 ${mediaItem.duration} and $_durationInPercentage");
+      try {
+        await _streamDownload.streamCount(code: mediaItem.extras['code']);
+        print('send stream count true');
+      } catch (e) {
+        print('Error sending strem count $e');
+      }
+    }*/
   }
 
   bool _isReadyToPlay() {
@@ -259,7 +284,6 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
     } catch (error) {
       print("error setUrl ${error.toString()}");
     }
-    await _streamDownload.streamCount(code: mediaItem.extras['code']);
 
     _skipState = null;
     _playFromIdIndex = null;

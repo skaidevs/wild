@@ -9,11 +9,13 @@ import 'package:rxdart/rxdart.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:wildstream/helpers/screen_state.dart';
 import 'package:wildstream/providers/bottom_navigator.dart';
+import 'package:wildstream/providers/latest_hot100_throwback.dart';
 import 'package:wildstream/screens/album.dart';
 import 'package:wildstream/screens/player.dart';
 import 'package:wildstream/screens/playlist.dart';
 import 'package:wildstream/screens/search.dart';
 import 'package:wildstream/widgets/commons.dart';
+import 'package:wildstream/widgets/loadingInfo.dart';
 
 import 'latest_hot100_throwback.dart';
 
@@ -204,13 +206,16 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
   Widget build(BuildContext context) {
     print("BUILD NUMBER ${_buildIndex++}");
     _bottomNavigation = Provider.of<BottomNavigation>(context);
+    final _notifier = Provider.of<SongsNotifier>(context);
 
     BorderRadiusGeometry radius = BorderRadius.only(
       topLeft: Radius.circular(10.0),
       topRight: Radius.circular(10.0),
     );
-    return Scaffold(
-      /*appBar: _currentIndex == 0
+    return _notifier.isLoading
+        ? Center(child: LoadingInfo())
+        : Scaffold(
+            /*appBar: _currentIndex == 0
           ? null
           : AppBar(
               title: Text(
@@ -221,180 +226,186 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                 ),
               ),
             ),*/
-      backgroundColor: Theme.of(context).backgroundColor,
-      body: SlidingUpPanel(
-        controller: _pc,
-        onPanelOpened: hideBottomBar,
-        onPanelClosed: showBottomBar,
-        maxHeight: MediaQuery.of(context).size.height,
-        minHeight: _isLoading ? 0.0 : 60.0,
-        panel: PlayerStreamBuilder(
-          dragPositionSubject: _dragPositionSubject,
-        ),
-        collapsed: StreamBuilder<ScreenState>(
-          stream: _screenStateStream,
-          builder: (context, snapshot) {
-            final screenState = snapshot.data;
-            final mediaItem = screenState?.mediaItem;
-            final state = screenState?.playbackState;
-            final basicState = state?.basicState ?? BasicPlaybackState.none;
-            if (snapshot.hasError)
-              print("ERROR On StreamBuilder ${snapshot.error}");
+            backgroundColor: Theme.of(context).backgroundColor,
+            body: SlidingUpPanel(
+              controller: _pc,
+              onPanelOpened: hideBottomBar,
+              onPanelClosed: showBottomBar,
+              maxHeight: MediaQuery.of(context).size.height,
+              minHeight: _isLoading ? 0.0 : 60.0,
+              panel: PlayerStreamBuilder(
+                dragPositionSubject: _dragPositionSubject,
+              ),
+              collapsed: StreamBuilder<ScreenState>(
+                stream: _screenStateStream,
+                builder: (context, snapshot) {
+                  final screenState = snapshot.data;
+                  final mediaItem = screenState?.mediaItem;
+                  final state = screenState?.playbackState;
+                  final basicState =
+                      state?.basicState ?? BasicPlaybackState.none;
+                  if (snapshot.hasError)
+                    print("ERROR On StreamBuilder ${snapshot.error}");
 
-            return snapshot.hasData
-                ? Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).bottomAppBarColor,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        //TODO: Get Data from StreamBuilder to make it persistence
-                        children: <Widget>[
-                          Flexible(
+                  return snapshot.hasData
+                      ? Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).bottomAppBarColor,
+                          ),
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
                             child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              //TODO: Get Data from StreamBuilder to make it persistence
                               children: <Widget>[
-                                GFAvatar(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(6.0),
-                                  ),
-                                  shape: GFAvatarShape.standard,
-                                  size: 30.0,
-                                  backgroundImage: mediaItem == null
-                                      ? AssetImage('assets/ws_white.png')
-                                      : NetworkImage(mediaItem?.artUri),
-                                ),
-                                SizedBox(
-                                  width: 10.0,
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                Flexible(
+                                  child: Row(
                                     children: <Widget>[
-                                      Text(
-                                        mediaItem == null
-                                            ? "Wildstream"
-                                            : '${mediaItem?.title}',
-                                        overflow: TextOverflow.ellipsis,
-                                        softWrap: true,
-                                        style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: kColorWhite),
+                                      GFAvatar(
+                                        borderRadius: BorderRadius.all(
+                                          Radius.circular(6.0),
+                                        ),
+                                        shape: GFAvatarShape.standard,
+                                        size: 30.0,
+                                        backgroundImage: mediaItem == null
+                                            ? AssetImage('assets/ws_white.png')
+                                            : NetworkImage(mediaItem?.artUri),
                                       ),
-                                      SizedBox(height: 5),
-                                      Text(
-                                        mediaItem == null
-                                            ? "Stay connected to the plug"
-                                            : '${mediaItem?.artist}',
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                            color:
-                                                Theme.of(context).accentColor),
+                                      SizedBox(
+                                        width: 10.0,
+                                      ),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: <Widget>[
+                                            Text(
+                                              mediaItem == null
+                                                  ? "Wildstream"
+                                                  : '${mediaItem?.title}',
+                                              overflow: TextOverflow.ellipsis,
+                                              softWrap: true,
+                                              style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: kColorWhite),
+                                            ),
+                                            SizedBox(height: 5),
+                                            Text(
+                                              mediaItem == null
+                                                  ? "Stay connected to the plug"
+                                                  : '${mediaItem?.artist}',
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Theme.of(context)
+                                                      .accentColor),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ),
+                                SizedBox(
+                                  width: 10.0,
+                                ),
+
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    if (basicState ==
+                                        BasicPlaybackState.playing)
+                                      _pauseButton(context: context)
+                                    else if (basicState ==
+                                        BasicPlaybackState.paused)
+                                      _playButton(context: context)
+                                    else if (basicState ==
+                                            BasicPlaybackState.buffering ||
+                                        basicState ==
+                                            BasicPlaybackState.skippingToNext ||
+                                        basicState ==
+                                            BasicPlaybackState
+                                                .skippingToPrevious)
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: SizedBox(
+                                          width: 30.0,
+                                          height: 30.0,
+                                          child: GFLoader(
+                                            size: 30.0,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+//                        _playButton(context: context),
                               ],
                             ),
                           ),
-                          SizedBox(
-                            width: 10.0,
-                          ),
+                        )
+                      : Center(
+                          child: CircularProgressIndicator(),
+                        );
+                },
+              ),
+              body: _pages[_bottomNavigation.currentIndex]['page'],
+            ),
+            bottomNavigationBar: _show
+                ? BottomNavigationBar(
+                    backgroundColor: kColorWSAltBlack,
+                    type: BottomNavigationBarType.fixed,
 
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (basicState == BasicPlaybackState.playing)
-                                _pauseButton(context: context)
-                              else if (basicState == BasicPlaybackState.paused)
-                                _playButton(context: context)
-                              else if (basicState ==
-                                      BasicPlaybackState.buffering ||
-                                  basicState ==
-                                      BasicPlaybackState.skippingToNext ||
-                                  basicState ==
-                                      BasicPlaybackState.skippingToPrevious)
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: SizedBox(
-                                    width: 30.0,
-                                    height: 30.0,
-                                    child: GFLoader(
-                                      size: 30.0,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-//                        _playButton(context: context),
-                        ],
+                    currentIndex: _bottomNavigation.currentIndex,
+                    showSelectedLabels: true,
+                    // this will be set when a new tab is tapped
+                    onTap: (index) {
+                      _bottomNavigation.currentIndex = index;
+                      _bottomNavigationIndex = index;
+                    },
+                    items: const [
+                      BottomNavigationBarItem(
+                        backgroundColor: kColorWSAltBlack,
+                        icon: const Icon(
+                          Icons.home,
+                          //color: kColorWSGreen,
+                        ),
+                        title: Text(''),
                       ),
-                    ),
+                      BottomNavigationBarItem(
+                        backgroundColor: kColorWSAltBlack,
+                        icon: const Icon(
+                          Icons.search,
+                          //color: kColorWSGreen,
+                        ),
+                        title: Text(''),
+                      ),
+                      BottomNavigationBarItem(
+                        backgroundColor: kColorWSAltBlack,
+                        icon: const Icon(
+                          Icons.album,
+                          //color: kColorWSGreen,
+                        ),
+                        title: Text(''),
+                      ),
+                      BottomNavigationBarItem(
+                        backgroundColor: kColorWSAltBlack,
+                        icon: const Icon(
+                          Icons.playlist_play,
+                          //color: kColorWSGreen,
+                        ),
+                        title: Text(''),
+                      ),
+                    ],
+                    showUnselectedLabels: true,
+                    selectedItemColor: kColorWSGreen,
                   )
-                : Center(
-                    child: CircularProgressIndicator(),
-                  );
-          },
-        ),
-        body: _pages[_bottomNavigation.currentIndex]['page'],
-      ),
-      bottomNavigationBar: _show
-          ? BottomNavigationBar(
-              backgroundColor: kColorWSAltBlack,
-              type: BottomNavigationBarType.fixed,
-
-              currentIndex: _bottomNavigation.currentIndex,
-              showSelectedLabels: true,
-              // this will be set when a new tab is tapped
-              onTap: (index) {
-                _bottomNavigation.currentIndex = index;
-                _bottomNavigationIndex = index;
-              },
-              items: const [
-                BottomNavigationBarItem(
-                  backgroundColor: kColorWSAltBlack,
-                  icon: const Icon(
-                    Icons.home,
-                    //color: kColorWSGreen,
-                  ),
-                  title: Text(''),
-                ),
-                BottomNavigationBarItem(
-                  backgroundColor: kColorWSAltBlack,
-                  icon: const Icon(
-                    Icons.search,
-                    //color: kColorWSGreen,
-                  ),
-                  title: Text(''),
-                ),
-                BottomNavigationBarItem(
-                  backgroundColor: kColorWSAltBlack,
-                  icon: const Icon(
-                    Icons.album,
-                    //color: kColorWSGreen,
-                  ),
-                  title: Text(''),
-                ),
-                BottomNavigationBarItem(
-                  backgroundColor: kColorWSAltBlack,
-                  icon: const Icon(
-                    Icons.playlist_play,
-                    //color: kColorWSGreen,
-                  ),
-                  title: Text(''),
-                ),
-              ],
-              showUnselectedLabels: true,
-              selectedItemColor: kColorWSGreen,
-            )
-          : null,
-      /* floatingActionButton: FloatingActionButton(
+                : null,
+            /* floatingActionButton: FloatingActionButton(
           child: Icon(Icons.stars),
           onPressed: () async {
             print("Item::::::list ${_queue.length}");
@@ -402,7 +413,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
 //            print("Seelected QUEITEM  ${q[0].title}");
             _controller.isOpened ? _controller.hide() : _controller.show();
           }),*/
-    );
+          );
   }
 
   IconButton _playButton({BuildContext context}) => IconButton(

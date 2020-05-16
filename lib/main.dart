@@ -40,6 +40,11 @@ class WildStreamApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Wildstrem',
         theme: ThemeData(
+            selectedRowColor: Colors.yellow,
+            splashColor: Colors.red,
+            hoverColor: Colors.blue,
+            highlightColor: Colors.green,
+            textSelectionHandleColor: Colors.teal,
             brightness: Brightness.dark,
             accentColorBrightness: Brightness.dark,
             backgroundColor: bg_color,

@@ -43,20 +43,24 @@ class Latest extends StatelessWidget {
           shrinkWrap: true,
           physics: ClampingScrollPhysics(),
           /*separatorBuilder: (context, index) => const Divider(
-                    indent: 90.0,
-                    thickness: 0.6,
-                    endIndent: 10.0,
-                    color: Colors.white30,
-                  ),*/
+            indent: 90.0,
+            thickness: 0.6,
+            endIndent: 10.0,
+            color: Colors.white30,
+          ),*/
           itemCount: notifier.latestSongList.length,
-          itemBuilder: (context, index) => BuildSongItem(
-            song: notifier.latestSongList[index],
+          itemBuilder: (context, index) => InkWell(
             onTap: () {
-              playFromMediaId(
-                mediaId: _songNotifier.latestSongList[index].songFile.songUrl,
-              );
               print('Tapped from Latest ${_songNotifier.mediaList[index].id}');
             },
+            child: BuildSongItem(
+              song: notifier.latestSongList[index],
+              onTap: () {
+                playFromMediaId(
+                  mediaId: _songNotifier.latestSongList[index].songFile.songUrl,
+                );
+              },
+            ),
           ),
         );
       }),
