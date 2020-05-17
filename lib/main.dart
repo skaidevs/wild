@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:wildstream/helpers/background.dart';
+import 'package:wildstream/providers/album.dart';
 import 'package:wildstream/providers/bottom_navigator.dart';
 import 'package:wildstream/providers/latest_hot100_throwback.dart';
 import 'package:wildstream/providers/recorded_stream_download.dart';
@@ -31,6 +32,9 @@ class WildStreamApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<RecordedStreamDownload>(
           create: (_) => RecordedStreamDownload(),
+        ),
+        ChangeNotifierProvider<AlbumNotifier>(
+          create: (_) => AlbumNotifier(),
         ),
         ChangeNotifierProvider<BottomNavigation>(
           create: (_) => BottomNavigation(),

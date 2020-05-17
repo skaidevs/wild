@@ -52,6 +52,16 @@ class SongsNotifier with ChangeNotifier {
     return mediaList.firstWhere((media) => media.id == mediaId);
   }
 
+  _startPlayer() async {
+    await AudioService.start(
+      backgroundTaskEntrypoint: _audioPlayerTaskEntryPoint,
+      androidNotificationChannelName: 'WildStream',
+      notificationColor: 0xFF0A0A0A,
+      androidNotificationIcon: 'drawable/ic_notification',
+      enableQueue: true,
+    );
+  }
+
   int mediaItemIndex(MediaItem mediaItem) {
     for (int i = 0; i < mediaList.length; i++) {
       if (mediaList[i].id == mediaItem.id) {
@@ -68,7 +78,7 @@ class SongsNotifier with ChangeNotifier {
       if ('throw_back' == _songTypesIds[2]) {
         List<Data> _combinationSongList =
             _latestSongList + _hot100SongList + _throwbackSongList;
-        print('SONGLIST ${_combinationSongList.length}');
+        print('SONG_LIST ${_combinationSongList.length}');
         _concertToMediaItem(
           combinationSongList: _combinationSongList,
         ).then((_) async {
@@ -122,8 +132,9 @@ class SongsNotifier with ChangeNotifier {
     print("Song Type   $type");
 
     if (!_cachedSongs.containsKey(type)) {
-      final songsResponse =
-          await http.get('$baseUrl${'songs?type='}$type&token=$token');
+      final songsResponse = await http.get(
+        Uri.encodeFull('$baseUrl${'songs?type='}$type&token=$token'),
+      );
       if (songsResponse.statusCode == 200) {
         var extractedData = json.decode(songsResponse.body);
         if (extractedData == null) {
@@ -142,7 +153,8 @@ class SongsNotifier with ChangeNotifier {
     return _cachedSongs[type];
   }
 
-  Future<List<MediaItem>> fetchMediaList() async {
+///////////////////////////
+  /*Future<List<MediaItem>> fetchMediaList() async {
     print("_latestSubject ${_latestSongList?.length}");
 
     var _lastQueuedItems = AudioService.queue;
@@ -150,14 +162,14 @@ class SongsNotifier with ChangeNotifier {
       if (_latestSongList != null) {
         await _startPlayer();
         _mediaList.forEach((media) async {
-          /*_mediaList.add(MediaItem(
+          */ /*_mediaList.add(MediaItem(
             id: media.songFile.songUrl,
             album: media.name,
             title: media.name,
             artist: media.artistsToString,
             duration: media.duration,
             artUri: media.songArt.crops.crop500,
-          ));*/
+          ));*/ /*
           print('MediaItems >: ${_mediaList.toList()}');
           notifyListeners();
         });
@@ -171,17 +183,7 @@ class SongsNotifier with ChangeNotifier {
       return null;
     }
     return _mediaList;
-  }
-
-  _startPlayer() async {
-    await AudioService.start(
-      backgroundTaskEntrypoint: _audioPlayerTaskEntryPoint,
-      androidNotificationChannelName: 'WildStream',
-      notificationColor: 0xFF0A0A0A,
-      androidNotificationIcon: 'drawable/ic_notification',
-      enableQueue: true,
-    );
-  }
+  }*/
 }
 
 class WildStreamError {

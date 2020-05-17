@@ -32,3 +32,15 @@ Future kFlutterToast({String msg, BuildContext context}) {
       textColor: kColorWhite,
       fontSize: 16.0);
 }
+
+TextStyle kTextStyle({
+  double fontSize,
+  Color color,
+  FontWeight fontWeight,
+}) {
+  return TextStyle(
+    fontSize: fontSize,
+    color: color,
+    fontWeight: fontWeight,
+  );
+}

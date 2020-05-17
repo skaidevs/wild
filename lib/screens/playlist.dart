@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:wildstream/providers/album.dart';
 
 /*class Playlist extends StatelessWidget {
   @override
@@ -83,6 +85,15 @@ class _PlaylistState extends State<Playlist> {
   CounterStorage storage;
   int _counter;
 
+  void _fetchAlbum() {
+    Future.delayed(Duration(seconds: 1)).then((_) {
+      Provider.of<AlbumNotifier>(
+        context,
+        listen: false,
+      ).getAlums();
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -92,6 +103,7 @@ class _PlaylistState extends State<Playlist> {
         _counter = value;
       });
     });
+    //this._fetchAlbum();
   }
 
   Future<File> _incrementCounter() {

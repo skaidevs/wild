@@ -1,119 +1,76 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:wildstream/providers/album.dart';
+import 'package:wildstream/screens/album_details.dart';
+import 'package:wildstream/widgets/build_album_item.dart';
+import 'package:wildstream/widgets/loadingInfo.dart';
 
-class Album extends StatefulWidget {
-  //final Storage storage;
-
-  //const Album({Key key, @required this.storage}) : super(key: key);
-  @override
-  _AlbumState createState() => _AlbumState();
-}
-
-class _AlbumState extends State<Album> {
-  TextEditingController controller = TextEditingController();
-  String state;
-  Future<Directory> _appDocDir;
-  Storage storage;
-
-  @override
-  void initState() {
-    storage = new Storage(); // add this line
-
-    storage.readData().then((String value) {
-      setState(() {
-        state = value;
-      });
-    });
-    super.initState();
-  }
-
-  Future<File> writeData() async {
-    setState(() {
-      state = controller.text;
-      controller.text = '';
-    });
-
-    return storage.writeData(state);
-  }
-
-  void getAppDirectory() {
-    setState(() {
-      _appDocDir = getApplicationDocumentsDirectory();
-    });
-  }
-
+class Album extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    var size = MediaQuery.of(context).size;
+
+    /*24 is for notification bar on Android*/
+    final double itemHeight = (size.height - kToolbarHeight - 100) / 2;
+    final double itemWidth = size.width / 2;
     return Scaffold(
       backgroundColor: Theme.of(context).backgroundColor,
-      appBar: AppBar(),
-      body: Center(
-        child: Column(
-          children: <Widget>[
-            Text('${state ?? 'File is Empty'}'),
-            TextField(
-              controller: controller,
-            ),
-            RaisedButton(
-              onPressed: writeData,
-              child: Text('write to File'),
-            ),
-            RaisedButton(
-              onPressed: getAppDirectory,
-              child: Text('Get Dir Path'),
-            ),
-            FutureBuilder<Directory>(
-              future: _appDocDir,
-              builder: (context, AsyncSnapshot<Directory> sanpshot) {
-                Text text = Text('');
-                if (sanpshot.connectionState == ConnectionState.done) {
-                  if (sanpshot.hasError) {
-                    text = Text('Error: ${sanpshot.error}');
-                  } else if (sanpshot.hasData) {
-                    text = Text('DATA: ${sanpshot.data.path}');
-                  } else {
-                    text = Text('Unavail');
-                  }
-                }
+      appBar: AppBar(
+        title: Text('Album'),
+      ),
+      body: Container(
+        padding: Platform.isIOS
+            ? const EdgeInsets.fromLTRB(
+                0.0,
+                0.0,
+                0.0,
+                140.0,
+              )
+            : const EdgeInsets.fromLTRB(
+                0.0,
+                0.0,
+                0.0,
+                120.0,
+              ),
+        child: Consumer<AlbumNotifier>(builder: (context, notifier, _) {
+          if (notifier.isLoading) {
+            return Center(
+              child: LoadingInfo(),
+            );
+          }
 
-                return Container(
-                  child: text,
-                );
-              },
-            )
-          ],
-        ),
+          return GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 2 / 2.2,
+              mainAxisSpacing: 10.0,
+              crossAxisSpacing: 10.0,
+            ),
+            shrinkWrap: true,
+            itemCount: notifier.albumListData.length,
+            itemBuilder: (context, index) {
+              return BuildAlbumItem(
+                album: notifier.albumListData[index],
+                onTap: () => _push(context),
+              );
+            },
+          );
+        }),
       ),
     );
   }
+
+  void _push(BuildContext context) {
+    Navigator.of(context).push(MaterialPageRoute(
+      // we'll look at ColorDetailPage later
+      builder: (context) => AlbumDetails(),
+    ));
+  }
 }
 
-class Storage {
-  Future<String> get localPath async {
-    final dir = await getApplicationDocumentsDirectory();
-    return dir.path;
-  }
-
-  Future<File> get localFile async {
-    final path = await localPath;
-    return File('$path/db.txt');
-  }
-
-  Future<String> readData() async {
-    try {
-      final file = await localFile;
-      String body = await file.readAsString();
-      return body;
-    } catch (e) {
-      return e.toString();
-    }
-  }
-
-  Future<File> writeData(String data) async {
-    final file = await localFile;
-
-    return file.writeAsString('$data');
-  }
+class TabNavigatorRoutes {
+  static const String root = '/';
+  static const String detail = '/album_detail';
 }
