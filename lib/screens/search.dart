@@ -51,7 +51,7 @@ class Search extends StatelessWidget {
                   0.0,
                   0.0,
                   0.0,
-                  120.0,
+                  118.0,
                 ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:custom_navigator/custom_navigator.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
@@ -31,70 +32,16 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     with WidgetsBindingObserver {
   final BehaviorSubject<double> _dragPositionSubject =
       BehaviorSubject.seeded(null);
+  GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  PanelController _pc = PanelController();
+  List<Map<String, Object>> _pages;
 
   bool _show = true;
   bool _isLoading = false;
   bool _isPlaying = false;
   int _buildIndex = 0;
   MediaItem mediaItem;
-  int _currentIndex = 0;
   var _bottomNavigation;
-  int _bottomNavigationIndex = 0;
-
-  static const TextStyle optionStyle =
-      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Index 0: Home',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 1: Business',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 2: School',
-      style: optionStyle,
-    ),
-  ];
-
-//  Future<List<Data>> _fetchSongs() async {
-//    return await Provider.of<SongsNotifier>(
-//      context,
-//      listen: false,
-//    ).loadSongs(songType: 'latest').catchError((onError) {
-//      print("Error on Screen $onError");
-//    });
-//  }
-
-  void _fetchData() async {
-    _isLoading = true;
-//    if (_pc == null) {
-//      _pc.hide();
-//    }
-
-//    Future.delayed(
-//      Duration.zero,
-//    ).then((_) async {
-//      _fetchHot100Songs().then((hot100MediaList) async {
-//        await _startPlayer();
-//        var _lastQueuedItems = AudioService.queue;
-//        print("_lastQueuedItems $_lastQueuedItems");
-//
-//        if (_lastQueuedItems == null || _lastQueuedItems.isEmpty) {
-//          print("addQueueItem from api ${hot100MediaList.length}");
-//          await AudioService.addQueueItems(hot100MediaList);
-//          AudioService.play();
-//        } else {
-//          print("length is Not 0 ${_lastQueuedItems.length} ");
-//          return;
-//        }
-//        print("run afer addQueue from api ${hot100MediaList.length}");
-//      }).then(
-//        (_) => setState(() => _isLoading = false),
-//      );
-//    });
-  }
 
   @override
   void setState(fn) {
@@ -103,10 +50,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     }
   }
 
-  List<Map<String, Object>> _pages;
-
   void initState() {
-    super.initState();
     connect();
     WidgetsBinding.instance.addObserver(this);
     _pages = [
@@ -127,23 +71,8 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
         'title': 'Playlist',
       },
     ];
-
-//    _fetchSongs();
-
-//    this._startPlayer();
-//    this._fetchData();
+    super.initState();
   }
-
-  /*_startPlayer() async {
-//    connect();
-    await AudioService.start(
-      backgroundTaskEntrypoint: _audioPlayerTaskEntryPoint,
-      androidNotificationChannelName: 'WildStream',
-      notificationColor: 0xFF0A0A0A,
-      androidNotificationIcon: 'drawable/ic_notification',
-      enableQueue: true,
-    );
-  }*/
 
   void showBottomBar() {
     setState(() {
@@ -167,14 +96,6 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    AppLifecycleState _notification;
-
-    setState(() {
-      _notification = state;
-    });
-
-    print('didChangeAppLifecycleState called $_notification');
-
     switch (state) {
       case AppLifecycleState.resumed:
         connect();
@@ -200,34 +121,34 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     print("AudioService.disconnect()");
   }
 
-  PanelController _pc = PanelController();
-
   @override
   Widget build(BuildContext context) {
     print("BUILD NUMBER ${_buildIndex++}");
     _bottomNavigation = Provider.of<BottomNavigation>(context);
     final _notifier = Provider.of<SongsNotifier>(context);
 
-    BorderRadiusGeometry radius = BorderRadius.only(
-      topLeft: Radius.circular(10.0),
-      topRight: Radius.circular(10.0),
-    );
     return _notifier.isLoading
         ? Center(child: LoadingInfo())
         : Scaffold(
             /*appBar: _currentIndex == 0
-          ? null
-          : AppBar(
-              title: Text(
-                _pages[_bottomNavigation.currentIndex]['title'],
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20.0,
-                ),
-              ),
-            ),*/
+                ? null
+                : AppBar(
+                    title: Text(
+                      _pages[_bottomNavigation.currentIndex]['title'],
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20.0,
+                      ),
+                    ),
+                  ),*/
             backgroundColor: Theme.of(context).backgroundColor,
             body: SlidingUpPanel(
+              body: CustomNavigator(
+                navigatorKey: navigatorKey,
+                home: _pages[_bottomNavigation.currentIndex]['page'],
+                //Specify your page route [PageRoutes.materialPageRoute] or [PageRoutes.cupertinoPageRoute]
+                pageRoute: PageRoutes.materialPageRoute,
+              ),
               controller: _pc,
               onPanelOpened: hideBottomBar,
               onPanelClosed: showBottomBar,
@@ -343,7 +264,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                                       ),
                                   ],
                                 ),
-//                        _playButton(context: context),
+//                               _playButton(context: context),
                               ],
                             ),
                           ),
@@ -353,19 +274,17 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                         );
                 },
               ),
-              body: _pages[_bottomNavigation.currentIndex]['page'],
             ),
             bottomNavigationBar: _show
                 ? BottomNavigationBar(
                     backgroundColor: kColorWSAltBlack,
                     type: BottomNavigationBarType.fixed,
-
                     currentIndex: _bottomNavigation.currentIndex,
                     showSelectedLabels: true,
                     // this will be set when a new tab is tapped
                     onTap: (index) {
+                      navigatorKey.currentState.maybePop();
                       _bottomNavigation.currentIndex = index;
-                      _bottomNavigationIndex = index;
                     },
                     items: const [
                       BottomNavigationBarItem(
@@ -405,14 +324,14 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                     selectedItemColor: kColorWSGreen,
                   )
                 : null,
-            /* floatingActionButton: FloatingActionButton(
+            /*floatingActionButton: FloatingActionButton(
           child: Icon(Icons.stars),
           onPressed: () async {
             print("Item::::::list ${_queue.length}");
 //            final q = AudioService.queue;
 //            print("Seelected QUEITEM  ${q[0].title}");
             _controller.isOpened ? _controller.hide() : _controller.show();
-          }),*/
+          }), */
           );
   }
 

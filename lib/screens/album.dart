@@ -32,7 +32,7 @@ class Album extends StatelessWidget {
                 0.0,
                 0.0,
                 0.0,
-                120.0,
+                118.0,
               ),
         child: Consumer<AlbumNotifier>(builder: (context, notifier, _) {
           if (notifier.isLoading) {

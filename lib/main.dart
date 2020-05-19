@@ -11,6 +11,7 @@ import 'package:wildstream/screens/wildstream_home_page.dart';
 import 'package:wildstream/widgets/commons.dart';
 
 void main() => runApp(WildStreamApp());
+GlobalKey<NavigatorState> mainNavigatorKey = GlobalKey<NavigatorState>();
 
 class WildStreamApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -42,13 +43,9 @@ class WildStreamApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Wildstrem',
+        key: mainNavigatorKey,
+        title: 'WildStream',
         theme: ThemeData(
-            selectedRowColor: Colors.yellow,
-            splashColor: Colors.red,
-            hoverColor: Colors.blue,
-            highlightColor: Colors.green,
-            textSelectionHandleColor: Colors.teal,
             brightness: Brightness.dark,
             accentColorBrightness: Brightness.dark,
             backgroundColor: bg_color,

@@ -31,7 +31,7 @@ class Throwback extends StatelessWidget {
               0.0,
               0.0,
               0.0,
-              120.0,
+              118.0,
             ),
       color: Theme.of(context).backgroundColor,
       child: Consumer<SongsNotifier>(builder: (context, notifier, _) {

@@ -131,7 +131,7 @@ class _PlaylistState extends State<Playlist> {
                 0.0,
                 0.0,
                 0.0,
-                120.0,
+                118.0,
               ),
         child: Column(
           children: <Widget>[
