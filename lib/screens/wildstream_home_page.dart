@@ -12,6 +12,7 @@ import 'package:wildstream/helpers/screen_state.dart';
 import 'package:wildstream/providers/bottom_navigator.dart';
 import 'package:wildstream/providers/latest_hot100_throwback.dart';
 import 'package:wildstream/screens/album.dart';
+import 'package:wildstream/screens/album_details.dart';
 import 'package:wildstream/screens/player.dart';
 import 'package:wildstream/screens/playlist.dart';
 import 'package:wildstream/screens/search.dart';
@@ -121,6 +122,36 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     print("AudioService.disconnect()");
   }
 
+  Future<bool> _onWillPop() {
+    return showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text("Confirm Exit"),
+                content: Text("Are you sure you want to exit?"),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text("YES"),
+                    onPressed: () async {
+                      /*await AudioService.stop();
+                      SystemNavigator.pop();*/
+                      Navigator.of(context).pop(true);
+                      AudioService.stop();
+                    },
+                  ),
+                  FlatButton(
+                    child: Text("NO"),
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                  )
+                ],
+              );
+            }) ??
+        false;
+  }
+
   @override
   Widget build(BuildContext context) {
     print("BUILD NUMBER ${_buildIndex++}");
@@ -131,16 +162,16 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
         ? Center(child: LoadingInfo())
         : Scaffold(
             /*appBar: _currentIndex == 0
-                ? null
-                : AppBar(
-                    title: Text(
-                      _pages[_bottomNavigation.currentIndex]['title'],
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20.0,
-                      ),
+              ? null
+              : AppBar(
+                  title: Text(
+                    _pages[_bottomNavigation.currentIndex]['title'],
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20.0,
                     ),
-                  ),*/
+                  ),
+                ),*/
             backgroundColor: Theme.of(context).backgroundColor,
             body: SlidingUpPanel(
               body: CustomNavigator(
@@ -148,6 +179,10 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                 home: _pages[_bottomNavigation.currentIndex]['page'],
                 //Specify your page route [PageRoutes.materialPageRoute] or [PageRoutes.cupertinoPageRoute]
                 pageRoute: PageRoutes.materialPageRoute,
+                routes: <String, WidgetBuilder>{
+                  //"/album_detail": (BuildContext context) => AlbumDetails()
+                  AlbumDetails.routeName: (context) => AlbumDetails(),
+                },
               ),
               controller: _pc,
               onPanelOpened: hideBottomBar,
@@ -325,13 +360,13 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                   )
                 : null,
             /*floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.stars),
-          onPressed: () async {
-            print("Item::::::list ${_queue.length}");
+        child: Icon(Icons.stars),
+        onPressed: () async {
+          print("Item::::::list ${_queue.length}");
 //            final q = AudioService.queue;
 //            print("Seelected QUEITEM  ${q[0].title}");
-            _controller.isOpened ? _controller.hide() : _controller.show();
-          }), */
+          _controller.isOpened ? _controller.hide() : _controller.show();
+        }), */
           );
   }
 

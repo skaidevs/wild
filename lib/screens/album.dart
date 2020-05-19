@@ -10,6 +10,8 @@ import 'package:wildstream/widgets/loadingInfo.dart';
 class Album extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final _albumNotifier = Provider.of<AlbumNotifier>(context).albumListData;
+
     var size = MediaQuery.of(context).size;
 
     /*24 is for notification bar on Android*/
@@ -53,7 +55,10 @@ class Album extends StatelessWidget {
             itemBuilder: (context, index) {
               return BuildAlbumItem(
                 album: notifier.albumListData[index],
-                onTap: () => _push(context),
+                onTap: () => _push(
+                  context: context,
+                  code: _albumNotifier[index].code,
+                ),
               );
             },
           );
@@ -62,15 +67,10 @@ class Album extends StatelessWidget {
     );
   }
 
-  void _push(BuildContext context) {
-    Navigator.of(context).push(MaterialPageRoute(
-      // we'll look at ColorDetailPage later
-      builder: (context) => AlbumDetails(),
-    ));
+  void _push({
+    BuildContext context,
+    String code,
+  }) {
+    Navigator.of(context).pushNamed(AlbumDetails.routeName, arguments: code);
   }
-}
-
-class TabNavigatorRoutes {
-  static const String root = '/';
-  static const String detail = '/album_detail';
 }

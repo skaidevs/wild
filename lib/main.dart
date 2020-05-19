@@ -61,6 +61,7 @@ class WildStreamApp extends StatelessWidget {
             title: 'WildStream',
           ),
         ),
+        //initialRoute: '/',
       ),
     );
   }
