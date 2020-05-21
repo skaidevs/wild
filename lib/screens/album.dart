@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wildstream/providers/album.dart';
+import 'package:wildstream/providers/album_detail.dart';
 import 'package:wildstream/screens/album_details.dart';
 import 'package:wildstream/widgets/build_album_item.dart';
 import 'package:wildstream/widgets/loadingInfo.dart';
@@ -34,7 +35,7 @@ class Album extends StatelessWidget {
                 0.0,
                 0.0,
                 0.0,
-                118.0,
+                112.0,
               ),
         child: Consumer<AlbumNotifier>(builder: (context, notifier, _) {
           if (notifier.isLoading) {
@@ -71,6 +72,14 @@ class Album extends StatelessWidget {
     BuildContext context,
     String code,
   }) {
-    Navigator.of(context).pushNamed(AlbumDetails.routeName, arguments: code);
+    final _notifier = Provider.of<AlbumDetailNotifier>(
+      context,
+      listen: false,
+    );
+    _notifier.loadAlumsDetailList(code: code);
+    Navigator.of(context).pushNamed(
+      AlbumDetails.routeName,
+      arguments: code,
+    );
   }
 }

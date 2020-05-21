@@ -11,6 +11,8 @@ class AlbumDetailNotifier with ChangeNotifier {
   List<Songs> _detailAlbumList = [];
   UnmodifiableListView<Songs> get detailAlbumList =>
       UnmodifiableListView(_detailAlbumList);
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
 
   Future<List<Songs>> loadAlumsDetailList({
     String code,
@@ -19,6 +21,8 @@ class AlbumDetailNotifier with ChangeNotifier {
   }
 
   Future<List<Songs>> _getAlumsDetailList({String code}) async {
+    _isLoading = true;
+    notifyListeners();
     final albumDetailResponse = await http.get(
       Uri.encodeFull('$baseUrl' + 'album/' + '$code?&token=$token'),
     );
@@ -42,12 +46,14 @@ class AlbumDetailNotifier with ChangeNotifier {
 
       _detailAlbumList = album.data.songs;
 
+      _isLoading = false;
       notifyListeners();
       print(
           'ALBUMLIST???? ${album.data.songs.length}  and ${_detailAlbumList.length}');
     } else {
       print('ERROR ${albumDetailResponse.body}');
-
+      _isLoading = false;
+      notifyListeners();
       throw WildStreamError(
           'Album could not be fetched. {{}} ${albumDetailResponse.body}');
     }

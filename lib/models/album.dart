@@ -57,11 +57,13 @@ class AlbumArt with ChangeNotifier {
 
 class Crop with ChangeNotifier {
   final String crop200;
+  final String crop500;
 
-  Crop({this.crop200});
+  Crop({this.crop200, this.crop500});
   factory Crop.fromJson(Map<String, dynamic> parsedJson) {
     return Crop(
       crop200: parsedJson['200'] as String,
+      crop500: parsedJson['500'] as String,
     );
   }
 }
