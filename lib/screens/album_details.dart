@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:getflutter/components/avatar/gf_avatar.dart';
-import 'package:getflutter/shape/gf_avatar_shape.dart';
 import 'package:provider/provider.dart';
 import 'package:wildstream/models/album_details.dart';
 import 'package:wildstream/providers/album.dart';
@@ -28,15 +26,22 @@ class AlbumDetails extends StatelessWidget {
               pinned: true,
               flexibleSpace: FlexibleSpaceBar(
                 centerTitle: true,
-                title: Text('${_loadedAlbum.name}',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16.0,
-                    )),
+                title: Text(
+                  '${_loadedAlbum.name}',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.0,
+                  ),
+                ),
                 background: Image.network(
                   '${_loadedAlbum.albumArt.crop.crop200}',
                   fit: BoxFit.cover,
                 ),
+                stretchModes: [
+                  StretchMode.zoomBackground,
+                  StretchMode.blurBackground,
+                  StretchMode.fadeTitle
+                ],
               ),
             ),
           ];
@@ -58,7 +63,14 @@ class AlbumDetails extends StatelessWidget {
                   itemCount: _notifier.detailAlbumList.length,
                   itemBuilder: (context, index) => ListTile(
                     //key: PageStorageKey(_notifier.detailAlbumList[index].code),
-                    leading: Row(
+                    leading: Text(
+                      '${index + 1}.',
+                      style: kTextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: kColorWSGreen,
+                      ),
+                    ),
+                    /*Row(
                       children: <Widget>[
                         // Text('${index + 1}.'),
                         GFAvatar(
@@ -71,7 +83,7 @@ class AlbumDetails extends StatelessWidget {
                               .detailAlbumList[index].songArt.crops.crop100),
                         ),
                       ],
-                    ),
+                    ),*/
                     title: Text(
                       '${_notifier.detailAlbumList[index].name}',
                       style: TextStyle(
