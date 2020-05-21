@@ -31,7 +31,7 @@ class Hot100 extends StatelessWidget {
               0.0,
               0.0,
               0.0,
-              118.0,
+              112.0,
             ),
       color: Theme.of(context).backgroundColor,
       child: Consumer<SongsNotifier>(builder: (context, notifier, _) {

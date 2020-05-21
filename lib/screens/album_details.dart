@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
@@ -73,147 +75,224 @@ class AlbumDetails extends StatelessWidget {
         ),
       ),
       backgroundColor: Theme.of(context).backgroundColor,
-      body: ListView(
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(
-              12.0,
-            ),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      6.0,
-                    ),
-                    child: Image.network(
-                      '${_albumNotifier.albumListData[_albumIndex].albumArt.crop.crop500}',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(
-                      16.0,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Row(
-                          children:
-                              _albumNotifier.albumListData[_albumIndex].artists
-                                  .map(
-                                    (artist) => Text(
-                                      '${artist.name}',
-                                      style: kTextStyle(
-                                        fontSize: 22.0,
-                                        color: kColorWSGreen,
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            top: 12.0,
-                          ),
-                          child: Text(
-                            '${_notifier.shotUrl == null ? 'https://wstr.am' : _notifier.shotUrl}',
-                            style: kTextStyle(
-                              color: kColorWSYellow,
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 6.0),
-                          child: Text(
-                              '${_albumNotifier.albumListData[_albumIndex].releasedAt}'),
-                        ),
-                      ],
+      body: Container(
+        padding: Platform.isIOS
+            ? const EdgeInsets.fromLTRB(
+                0.0,
+                0.0,
+                0.0,
+                140.0,
+              )
+            : const EdgeInsets.fromLTRB(
+                0.0,
+                0.0,
+                0.0,
+                112.0,
+              ),
+        child: ListView(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(
+                12.0,
+              ),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        6.0,
+                      ),
+                      child: Image.network(
+                        '${_albumNotifier.albumListData[_albumIndex].albumArt.crop.crop500}',
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(
-              left: 13.0,
-              right: 13.0,
-              bottom: 10.0,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                _buildButton(
-                    color: kColorWSGreen,
-                    textColor: kColorWhite,
-                    text: 'Play',
-                    iconData: FontAwesomeIcons.play),
-                SizedBox(
-                  width: 16.0,
-                ),
-                _buildButton(
-                    color: kColorWhite,
-                    textColor: kColorWSAltBlack,
-                    text: 'Shuffle',
-                    iconData: FontAwesomeIcons.random),
-              ],
-            ),
-          ),
-          Container(
-            child:
-                Consumer<AlbumDetailNotifier>(builder: (context, _notifier, _) {
-              if (_notifier.isLoading) {
-                return Center(
-                  child: LoadingInfo(),
-                );
-              }
-
-              return ListView.builder(
-                  //padding: const EdgeInsets.all(2.0),
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  physics: ClampingScrollPhysics(),
-                  itemCount: _notifier.detailAlbumList.length,
-                  itemBuilder: (context, index) {
-                    index = index;
-                    return ListTile(
-                      title: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.start,
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(
+                        16.0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
+                          Row(
+                            children: _albumNotifier
+                                .albumListData[_albumIndex].artists
+                                .map(
+                                  (artist) => Text(
+                                    '${artist.name}',
+                                    style: kTextStyle(
+                                      fontSize: 22.0,
+                                      color: kColorWSGreen,
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                          ),
                           Padding(
-                            padding: const EdgeInsets.only(right: 12.0),
+                            padding: const EdgeInsets.only(
+                              top: 12.0,
+                            ),
                             child: Text(
-                              '${index + 1}.',
+                              '${_notifier.shotUrl == null ? 'https://wstr.am' : _notifier.shotUrl}',
                               style: kTextStyle(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.bold,
-                                color: kColorWSGreen,
+                                color: kColorWSYellow,
                               ),
                             ),
                           ),
-                          Text(
-                            '${_notifier.detailAlbumList[index].name}',
-                            style: TextStyle(
-                              color: Colors.white,
-                            ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 6.0),
+                            child: Text(
+                                '${_albumNotifier.albumListData[_albumIndex].releasedAt}'),
                           ),
                         ],
                       ),
-                      trailing: Icon(
-                        Icons.more_horiz,
-                        color: kColorWSGreen,
-                      ),
-                      selected: true,
-                    );
-                  });
-            }),
-          ),
-        ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                left: 13.0,
+                right: 13.0,
+                bottom: 10.0,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  _buildButton(
+                      color: kColorWSGreen,
+                      textColor: kColorWhite,
+                      text: 'Play',
+                      iconData: FontAwesomeIcons.play),
+                  SizedBox(
+                    width: 16.0,
+                  ),
+                  _buildButton(
+                      color: kColorWhite,
+                      textColor: kColorWSAltBlack,
+                      text: 'Shuffle',
+                      iconData: FontAwesomeIcons.random),
+                ],
+              ),
+            ),
+            Container(
+              child: Consumer<AlbumDetailNotifier>(
+                  builder: (context, _notifier, _) {
+                if (_notifier.isLoading) {
+                  return Center(
+                    child: LoadingInfo(),
+                  );
+                }
+
+                return ListView.builder(
+                    //padding: const EdgeInsets.all(2.0),
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    physics: ClampingScrollPhysics(),
+                    itemCount: _notifier.detailAlbumList.length,
+                    itemBuilder: (context, index) {
+                      index = index;
+                      return /*ListTile(
+                        leading: Text(
+                          '${index + 1}.',
+                          style: kTextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                            color: kColorWSGreen,
+                          ),
+                        ),
+                        title: Text(
+                          '${_notifier.detailAlbumList[index].name}',
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                        subtitle: Text(
+                          '${_notifier.detailAlbumList[index].artistsToString}',
+                          style: kTextStyle(
+                            fontSize: 14.0,
+                            color: kColorWSGreen,
+                          ),
+                        ),
+                        trailing: Icon(
+                          Icons.more_horiz,
+                          color: kColorWSGreen,
+                        ),
+                        selected: true,
+                      )*/
+                          Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14.0,
+                          vertical: 16.0,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          //TODO: Get Data from StreamBuilder to make it persistence
+                          children: <Widget>[
+                            Flexible(
+                              child: Row(
+                                children: <Widget>[
+                                  Text(
+                                    '${index + 1}.',
+                                    style: kTextStyle(
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.bold,
+                                      color: kColorWSGreen,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 10.0,
+                                  ),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        Text(
+                                          '${_notifier.detailAlbumList[index].name}',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        SizedBox(height: 5),
+                                        Text(
+                                          '${_notifier.detailAlbumList[index].artistsToString}',
+                                          style: kTextStyle(
+                                            fontSize: 14.0,
+                                            color: kColorWSGreen,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              width: 10.0,
+                            ),
+
+                            Icon(
+                              Icons.more_horiz,
+                              color: kColorWSGreen,
+                            ),
+//                               _playButton(context: context),
+                          ],
+                        ),
+                      );
+                    });
+              }),
+            ),
+          ],
+        ),
       ),
     );
   }
