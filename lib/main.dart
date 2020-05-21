@@ -4,9 +4,11 @@ import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:wildstream/helpers/background.dart';
 import 'package:wildstream/providers/album.dart';
+import 'package:wildstream/providers/album_detail.dart';
 import 'package:wildstream/providers/bottom_navigator.dart';
 import 'package:wildstream/providers/latest_hot100_throwback.dart';
 import 'package:wildstream/providers/recorded_stream_download.dart';
+import 'package:wildstream/screens/album_details.dart';
 import 'package:wildstream/screens/wildstream_home_page.dart';
 import 'package:wildstream/widgets/commons.dart';
 
@@ -36,6 +38,10 @@ class WildStreamApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<AlbumNotifier>(
           create: (_) => AlbumNotifier(),
+        ),
+        ChangeNotifierProvider<AlbumDetailNotifier>(
+          create: (_) => AlbumDetailNotifier(),
+          child: AlbumDetails(),
         ),
         ChangeNotifierProvider<BottomNavigation>(
           create: (_) => BottomNavigation(),

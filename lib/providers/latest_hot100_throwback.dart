@@ -15,7 +15,7 @@ enum SongTypes {
 }
 const baseUrl = 'https://www.wildstream.ng/api/';
 const token =
-    'cfM0jinT1a0wVvBr7iJNY6LpbaqlnMPhZeuQv4ln6K0oXK8KnDEbIHBDLNXMKpnTKZjvc3vPkkdpRkaTrZL8dZh6iDS28FVa6tCZsOz8zz5OEcEcBIhQbpRG1k3eeJpkZRCyDtRFS91vQKZZ3vl1QTbxHoTEuIpyXwzQeiPpwwTSPXmv21eIWuio8mKBqc1JrGyU573M';
+    'iX62dkPex5pV1oA3TgzretMJHECqmlu8uBuCwOjbtZ5wao3rHpP7H4H61XvuFiDS3zBEUVt2L9TFqMFM4zhROBNFXP5O2sIdjnj7qQRnWWlQ7LIkxQLceZ0K98BieLQWdACr4t5dwGcWexZz555RhUjedBIXrkLapewmDJRzLvmDBxNdvAVEc9qz0aidke5w3RyBvoLk';
 
 class SongsNotifier with ChangeNotifier {
   Map<String, List<Data>> _cachedSongs;

@@ -10,9 +10,7 @@ import 'latest_hot100_throwback.dart';
 
 class AlbumNotifier with ChangeNotifier {
   Map<String, List<Data>> _cachedAlbums;
-  List<Data> _detailAlbumList = [];
-  UnmodifiableListView<Data> get detailAlbumList =>
-      UnmodifiableListView(_detailAlbumList);
+
   List<Data> _albumListData = [];
   UnmodifiableListView<Data> get albumListData =>
       UnmodifiableListView(_albumListData);

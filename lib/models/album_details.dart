@@ -1,23 +1,37 @@
+//ALBUM LIST MODEL..........................
 import 'package:flutter/cupertino.dart';
 
-class Song with ChangeNotifier {
-  final String name;
-  final List<Data> data;
-  Song({
-    this.name,
+class AlbumSong with ChangeNotifier {
+  final Data data;
+
+  AlbumSong({
     this.data,
   });
-  factory Song.fromJson(Map<String, dynamic> parsedJson) {
-    var list = parsedJson['data'] as List;
-    List<Data> songsData = list.map((i) => Data.fromJson(i)).toList();
-    return Song(
-      name: parsedJson['name'],
-      data: songsData,
+  factory AlbumSong.fromJson(Map<String, dynamic> parsedJson) {
+    return AlbumSong(
+      data: Data.fromJson(parsedJson['data']),
     );
   }
 }
 
 class Data with ChangeNotifier {
+  final String shortUrl;
+  final List<Songs> songs;
+  Data({
+    this.shortUrl,
+    this.songs,
+  });
+  factory Data.fromJson(Map<String, dynamic> parsedJson) {
+    var list = parsedJson['songs'] as List;
+    List<Songs> songsData = list.map((i) => Songs.fromJson(i)).toList();
+    return Data(
+      songs: songsData,
+      shortUrl: parsedJson['short_url'],
+    );
+  }
+}
+
+class Songs with ChangeNotifier {
   final String code;
   final String name;
   final String shortUrl;
@@ -27,7 +41,7 @@ class Data with ChangeNotifier {
   final SongFile songFile;
   final SongArt songArt;
 
-  Data({
+  Songs({
     this.code,
     this.name,
     this.shortUrl,
@@ -38,14 +52,14 @@ class Data with ChangeNotifier {
     this.songArt,
   });
 
-  factory Data.fromJson(Map<dynamic, dynamic> parsedJson) {
+  factory Songs.fromJson(Map<dynamic, dynamic> parsedJson) {
     int calculatedDuration(int duration) {
       final _times = 1000;
       final _newDuration = duration * _times;
       return _newDuration;
     }
 
-    return Data(
+    return Songs(
       code: parsedJson['code'] as String,
       name: parsedJson['name'] as String,
       shortUrl: parsedJson['short_url'] as String,
