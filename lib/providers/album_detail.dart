@@ -14,6 +14,9 @@ class AlbumDetailNotifier with ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  String _shotUrl;
+  String get shotUrl => _shotUrl;
+
   Future<List<Songs>> loadAlumsDetailList({
     String code,
   }) async {
@@ -45,6 +48,7 @@ class AlbumDetailNotifier with ChangeNotifier {
       print('RUN ALBUMLIST ${album.data}');
 
       _detailAlbumList = album.data.songs;
+      _shotUrl = album.data.shortUrl;
 
       _isLoading = false;
       notifyListeners();

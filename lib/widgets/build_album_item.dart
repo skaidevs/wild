@@ -16,14 +16,14 @@ class BuildAlbumItem extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(8.0,),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(
             6.0,
           ),
           child: GridTile(
             child: Image.network(
-              album.albumArt.crop.crop200,
+              album.albumArt.crop.crop500,
               fit: BoxFit.cover,
             ),
             header: Container(

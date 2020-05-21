@@ -59,6 +59,7 @@ class Album extends StatelessWidget {
                 onTap: () => _push(
                   context: context,
                   code: _albumNotifier[index].code,
+                  index: index,
                 ),
               );
             },
@@ -71,6 +72,7 @@ class Album extends StatelessWidget {
   void _push({
     BuildContext context,
     String code,
+    int index,
   }) {
     final _notifier = Provider.of<AlbumDetailNotifier>(
       context,
@@ -79,7 +81,7 @@ class Album extends StatelessWidget {
     _notifier.loadAlumsDetailList(code: code);
     Navigator.of(context).pushNamed(
       AlbumDetails.routeName,
-      arguments: code,
+      arguments: index,
     );
   }
 }
