@@ -134,11 +134,16 @@ class AlbumDetails extends StatelessWidget {
                             padding: const EdgeInsets.only(
                               top: 12.0,
                             ),
-                            child: Text(
-                              '${_notifier.shotUrl == null ? 'https://wstr.am' : _notifier.shotUrl}',
-                              style: kTextStyle(
-                                color: kColorWSYellow,
-                              ),
+                            child: Consumer<AlbumDetailNotifier>(
+                              builder: (context, _notifier, _) =>
+                                  _notifier.isLoading
+                                      ? LoadingInfo()
+                                      : Text(
+                                          '${_notifier.shotUrl == null ? 'https://wstr.am' : _notifier.shotUrl}',
+                                          style: kTextStyle(
+                                            color: kColorWSYellow,
+                                          ),
+                                        ),
                             ),
                           ),
                           Padding(
