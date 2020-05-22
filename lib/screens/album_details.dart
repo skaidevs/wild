@@ -75,125 +75,132 @@ class AlbumDetails extends StatelessWidget {
         ),
       ),
       backgroundColor: Theme.of(context).backgroundColor,
-      body: Container(
-        padding: Platform.isIOS
-            ? const EdgeInsets.fromLTRB(
-                0.0,
-                0.0,
-                0.0,
-                140.0,
-              )
-            : const EdgeInsets.fromLTRB(
-                0.0,
-                0.0,
-                0.0,
-                112.0,
-              ),
-        child: ListView(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(
-                12.0,
-              ),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        6.0,
-                      ),
-                      child: Image.network(
-                        '${_albumNotifier.albumListData[_albumIndex].albumArt.crop.crop500}',
-                        fit: BoxFit.cover,
-                      ),
+      body: ListView(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(
+              12.0,
+            ),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      6.0,
+                    ),
+                    child: Image.network(
+                      '${_albumNotifier.albumListData[_albumIndex].albumArt.crop.crop500}',
+                      fit: BoxFit.cover,
                     ),
                   ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(
-                        16.0,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Row(
-                            children: _albumNotifier
-                                .albumListData[_albumIndex].artists
-                                .map(
-                                  (artist) => Text(
-                                    '${artist.name}',
-                                    style: kTextStyle(
-                                      fontSize: 22.0,
-                                      color: kColorWSGreen,
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              top: 12.0,
-                            ),
-                            child: Consumer<AlbumDetailNotifier>(
-                              builder: (context, _notifier, _) =>
-                                  _notifier.isLoading
-                                      ? LoadingInfo()
-                                      : Text(
-                                          '${_notifier.shotUrl == null ? 'https://wstr.am' : _notifier.shotUrl}',
-                                          style: kTextStyle(
-                                            color: kColorWSYellow,
-                                          ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(
+                      16.0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Row(
+                          children:
+                              _albumNotifier.albumListData[_albumIndex].artists
+                                  .map(
+                                    (artist) => Expanded(
+                                      child: Text(
+                                        '${artist.name}',
+                                        style: kTextStyle(
+                                          fontSize: 22.0,
+                                          color: kColorWSGreen,
                                         ),
-                            ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            top: 12.0,
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 6.0),
-                            child: Text(
-                                '${_albumNotifier.albumListData[_albumIndex].releasedAt}'),
+                          child: Consumer<AlbumDetailNotifier>(
+                            builder: (context, _notifier, _) =>
+                                _notifier.isLoading
+                                    ? Text(
+                                        'https://wstr.am',
+                                        style: kTextStyle(
+                                          color: kColorWSYellow,
+                                        ),
+                                      )
+                                    : Text(
+                                        '${_notifier.shotUrl == null ? 'https://wstr.am' : _notifier.shotUrl}',
+                                        style: kTextStyle(
+                                          color: kColorWSYellow,
+                                        ),
+                                      ),
                           ),
-                        ],
-                      ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6.0),
+                          child: Text(
+                              '${_albumNotifier.albumListData[_albumIndex].releasedAt}'),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 13.0,
-                right: 13.0,
-                bottom: 10.0,
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  _buildButton(
-                      color: kColorWSGreen,
-                      textColor: kColorWhite,
-                      text: 'Play',
-                      iconData: FontAwesomeIcons.play),
-                  SizedBox(
-                    width: 16.0,
-                  ),
-                  _buildButton(
-                      color: kColorWhite,
-                      textColor: kColorWSAltBlack,
-                      text: 'Shuffle',
-                      iconData: FontAwesomeIcons.random),
-                ],
-              ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(
+              left: 13.0,
+              right: 13.0,
+              bottom: 10.0,
             ),
-            Container(
-              child: Consumer<AlbumDetailNotifier>(
-                  builder: (context, _notifier, _) {
-                if (_notifier.isLoading) {
-                  return Center(
-                    child: LoadingInfo(),
-                  );
-                }
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                _buildButton(
+                    color: kColorWSGreen,
+                    textColor: kColorWhite,
+                    text: 'Play',
+                    iconData: FontAwesomeIcons.play),
+                SizedBox(
+                  width: 16.0,
+                ),
+                _buildButton(
+                    color: kColorWhite,
+                    textColor: kColorWSAltBlack,
+                    text: 'Shuffle',
+                    iconData: FontAwesomeIcons.random),
+              ],
+            ),
+          ),
+          Container(
+            child:
+                Consumer<AlbumDetailNotifier>(builder: (context, _notifier, _) {
+              if (_notifier.isLoading) {
+                return Center(
+                  child: LoadingInfo(),
+                );
+              }
 
-                return ListView.builder(
+              return Container(
+                padding: Platform.isIOS
+                    ? const EdgeInsets.fromLTRB(
+                        0.0,
+                        0.0,
+                        0.0,
+                        120.0,
+                      )
+                    : const EdgeInsets.fromLTRB(
+                        0.0,
+                        0.0,
+                        0.0,
+                        120.0,
+                      ),
+                child: ListView.builder(
                     //padding: const EdgeInsets.all(2.0),
                     scrollDirection: Axis.vertical,
                     shrinkWrap: true,
@@ -293,11 +300,11 @@ class AlbumDetails extends StatelessWidget {
                           ],
                         ),
                       );
-                    });
-              }),
-            ),
-          ],
-        ),
+                    }),
+              );
+            }),
+          ),
+        ],
       ),
     );
   }
