@@ -42,7 +42,7 @@ class AlbumDetailNotifier with ChangeNotifier {
         print('Queue Changed >: ${_lastQueuedItems.length}');
       }*/
 
-     /* if (_mediaInQueue[0] == _albumCode && _mediaInQueue.isNotEmpty) {
+      /* if (_mediaInQueue[0] == _albumCode && _mediaInQueue.isNotEmpty) {
         print('AL_ready in >: $_albumCode');
         _isLoading = false;
         notifyListeners();

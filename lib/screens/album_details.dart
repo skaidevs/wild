@@ -59,22 +59,23 @@ class AlbumDetails extends StatelessWidget {
     String mediaUri,
     String albumCode,
   }) async {
-    bool _isLoaded = false;
+    await AudioService.replaceQueue(mediaList).then((_) {
+      playFromMediaId(mediaId: mediaUri);
+      print('Queue Added >: ${mediaList.length}');
+      //mediaInQueue.clear();
+    });
+    /*bool _isLoaded = false;
     if (_isLoaded) {
       playFromMediaId(mediaId: mediaUri);
       print('Played from ID $mediaList');
-
     } else {
-
-
       await AudioService.replaceQueue(mediaList).then((_) {
         playFromMediaId(mediaId: mediaUri);
         print('Queue Added >: ${mediaList.length}');
         //mediaInQueue.clear();
         _isLoaded = true;
-
       });
-    }
+    }*/
   }
 
   @override
