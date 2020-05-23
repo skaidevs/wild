@@ -63,6 +63,7 @@ class _LatestHot100ThrowbackState extends State<LatestHot100Throwback>
     print("Latest Build");
 
     return Scaffold(
+      backgroundColor: Theme.of(context).backgroundColor,
       appBar: AppBar(
         flexibleSpace: SafeArea(
           child: getTabBar(),

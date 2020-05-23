@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:wildstream/helpers/play_from_media_id.dart';
 import 'package:wildstream/providers/album.dart';
 import 'package:wildstream/providers/album_detail.dart';
 import 'package:wildstream/widgets/commons.dart';
@@ -51,9 +53,33 @@ class AlbumDetails extends StatelessWidget {
     );
   }
 
+  void _playFromMedia({
+    List<MediaItem> mediaList,
+    List<String> mediaInQueue,
+    String mediaUri,
+    String albumCode,
+  }) async {
+    bool _isLoaded = false;
+    if (_isLoaded) {
+      playFromMediaId(mediaId: mediaUri);
+      print('Played from ID $mediaList');
+
+    } else {
+
+
+      await AudioService.replaceQueue(mediaList).then((_) {
+        playFromMediaId(mediaId: mediaUri);
+        print('Queue Added >: ${mediaList.length}');
+        //mediaInQueue.clear();
+        _isLoaded = true;
+
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final _notifier = Provider.of<AlbumDetailNotifier>(
+    final _detailsNotifier = Provider.of<AlbumDetailNotifier>(
       context,
       listen: false,
     );
@@ -178,8 +204,11 @@ class AlbumDetails extends StatelessWidget {
             ),
           ),
           Container(
-            child:
-                Consumer<AlbumDetailNotifier>(builder: (context, _notifier, _) {
+            child: Consumer<AlbumDetailNotifier>(builder: (
+              context,
+              _notifier,
+              _,
+            ) {
               if (_notifier.isLoading) {
                 return Center(
                   child: LoadingInfo(),
@@ -208,96 +237,76 @@ class AlbumDetails extends StatelessWidget {
                     itemCount: _notifier.detailAlbumList.length,
                     itemBuilder: (context, index) {
                       index = index;
-                      return /*ListTile(
-                        leading: Text(
-                          '${index + 1}.',
-                          style: kTextStyle(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: kColorWSGreen,
+                      return InkWell(
+                        onTap: () {
+                          _playFromMedia(
+                            mediaList: _detailsNotifier.mediaList,
+                            mediaUri: _notifier
+                                .detailAlbumList[index].songFile.songUrl,
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14.0,
+                            vertical: 16.0,
                           ),
-                        ),
-                        title: Text(
-                          '${_notifier.detailAlbumList[index].name}',
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        ),
-                        subtitle: Text(
-                          '${_notifier.detailAlbumList[index].artistsToString}',
-                          style: kTextStyle(
-                            fontSize: 14.0,
-                            color: kColorWSGreen,
-                          ),
-                        ),
-                        trailing: Icon(
-                          Icons.more_horiz,
-                          color: kColorWSGreen,
-                        ),
-                        selected: true,
-                      )*/
-                          Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14.0,
-                          vertical: 16.0,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          //TODO: Get Data from StreamBuilder to make it persistence
-                          children: <Widget>[
-                            Flexible(
-                              child: Row(
-                                children: <Widget>[
-                                  Text(
-                                    '${index + 1}.',
-                                    style: kTextStyle(
-                                      fontSize: 16.0,
-                                      fontWeight: FontWeight.bold,
-                                      color: kColorWSGreen,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              Flexible(
+                                child: Row(
+                                  children: <Widget>[
+                                    Text(
+                                      '${index + 1}.',
+                                      style: kTextStyle(
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.bold,
+                                        color: kColorWSGreen,
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(
-                                    width: 10.0,
-                                  ),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: <Widget>[
-                                        Text(
-                                          '${_notifier.detailAlbumList[index].name}',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        SizedBox(height: 5),
-                                        Text(
-                                          '${_notifier.detailAlbumList[index].artistsToString}',
-                                          style: kTextStyle(
-                                            fontSize: 14.0,
-                                            color: kColorWSGreen,
-                                          ),
-                                        ),
-                                      ],
+                                    SizedBox(
+                                      width: 10.0,
                                     ),
-                                  ),
-                                ],
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: <Widget>[
+                                          Text(
+                                            '${_notifier.detailAlbumList[index].name}',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          SizedBox(height: 5),
+                                          Text(
+                                            '${_notifier.detailAlbumList[index].artistsToString}',
+                                            style: kTextStyle(
+                                              fontSize: 14.0,
+                                              color: kColorWSGreen,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            SizedBox(
-                              width: 10.0,
-                            ),
+                              SizedBox(
+                                width: 10.0,
+                              ),
 
-                            Icon(
-                              Icons.more_horiz,
-                              color: kColorWSGreen,
-                            ),
+                              Icon(
+                                Icons.more_horiz,
+                                color: kColorWSGreen,
+                              ),
 //                               _playButton(context: context),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     }),

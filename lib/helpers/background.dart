@@ -33,6 +33,9 @@ MediaControl stopControl = MediaControl(
 
 class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
   final _queue = <MediaItem>[];
+
+  var _newQueue = <MediaItem>[];
+
   var _mediaItemIndex;
   int _queueIndex = -1;
   AudioPlayer _audioPlayer = new AudioPlayer();
@@ -121,11 +124,29 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
   }
 
   @override
-  void onAddQueueItem(MediaItem mediaItem) async {
-//    print("onAddQueueItem Called");
+  void onAddQueueItem(MediaItem mediaItem) {
     _queue.add(mediaItem);
     AudioServiceBackground.setQueue(_queue);
+
+    print("onAddQueueItem Called ${_queue.length}");
     super.onAddQueueItem(mediaItem);
+  }
+
+  @override
+  Future<void> onReplaceQueue(List<MediaItem> queue) async {
+    _queue.clear();
+    print('onReplaceQueue called first ${_queue.length} and  ${queue.length}');
+
+    queue.forEach((media) async {
+      _queue.add(media);
+      //_queueIndex = 0;
+    });
+    await AudioServiceBackground.setQueue(_queue);
+    _queueIndex = 0;
+    print("onReplaceQueue Called ${_queue.length} and $_queueIndex");
+    _skip(_queueIndex);
+
+    return super.onReplaceQueue(queue);
   }
 
   @override
@@ -136,7 +157,7 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
     }
     _mediaItemIndex = findMediaById(mediaId: mediaId);
     _playFromIdIndex = _queue.indexOf(_mediaItemIndex);
-    print("index $_playFromIdIndex amd ${_queue[127].title}");
+    print("index $_playFromIdIndex amd $_queueIndex");
     print("onPlayFromMediaId Called.. ${_queue.length}");
 
     _skip(_playFromIdIndex);
