@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/shape/gf_avatar_shape.dart';
 import 'package:provider/provider.dart';
-import 'package:wildstream/helpers/play_from_media_id.dart';
 import 'package:wildstream/models/song.dart';
 import 'package:wildstream/providers/latest_hot100_throwback.dart';
 import 'package:wildstream/widgets/build_song_item.dart';
@@ -55,10 +54,15 @@ class Hot100 extends StatelessWidget {
             index: index + 1,
             hot100: 'hot100',
             onTap: () {
-              playFromMediaId(
-                mediaId: _songNotifier.hot100SongList[index].songFile.songUrl,
+              notifier.playMediaFromButtonPressed(
+                playButton: 'hot_100',
+                playFromId: notifier.hot100MediaList[index].id,
               );
-              print('Tapped from Hot100 ${_songNotifier.mediaList[index].id}');
+              /*playFromMediaId(
+                mediaId: _songNotifier.hot100MediaList[index].id,
+              );*/
+//              print(
+//                  'Tapped from Hot100 ${_songNotifier.hot100MediaList[index].id}');
             },
           ),
         );

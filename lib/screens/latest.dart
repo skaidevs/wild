@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:wildstream/helpers/play_from_media_id.dart';
 import 'package:wildstream/providers/latest_hot100_throwback.dart';
 import 'package:wildstream/widgets/build_song_item.dart';
 import 'package:wildstream/widgets/loadingInfo.dart';
@@ -50,14 +49,19 @@ class Latest extends StatelessWidget {
           itemCount: notifier.latestSongList.length,
           itemBuilder: (context, index) => InkWell(
             onTap: () {
-              print('Tapped from Latest ${_songNotifier.mediaList[index].id}');
+              print(
+                  'Tapped from Latest ${_songNotifier.latestMediaList[index].id}');
             },
             child: BuildSongItem(
               song: notifier.latestSongList[index],
               onTap: () {
-                playFromMediaId(
-                  mediaId: _songNotifier.latestSongList[index].songFile.songUrl,
+                notifier.playMediaFromButtonPressed(
+                  playButton: 'latest',
+                  playFromId: notifier.latestMediaList[index].id,
                 );
+                /*playFromMediaId(
+                  mediaId: _songNotifier.latestMediaList[index].id,
+                );*/
               },
             ),
           ),

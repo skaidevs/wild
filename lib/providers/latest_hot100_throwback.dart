@@ -40,17 +40,23 @@ class SongsNotifier with ChangeNotifier {
   UnmodifiableListView<Data> get throwbackSongList =>
       UnmodifiableListView(_throwbackSongList);
 
-  List<MediaItem> _mediaList = [];
-  List<MediaItem> get mediaList {
-    return [..._mediaList];
+  List<MediaItem> _latestMediaList = [];
+  List<MediaItem> get latestMediaList {
+    return [..._latestMediaList];
+  }
+
+  List<MediaItem> _hot100MediaList = [];
+  List<MediaItem> get hot100MediaList {
+    return [..._hot100MediaList];
+  }
+
+  List<MediaItem> _throwbackMediaList = [];
+  List<MediaItem> get throwbackMediaList {
+    return [..._throwbackMediaList];
   }
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
-
-  MediaItem findMediaById({String mediaId}) {
-    return mediaList.firstWhere((media) => media.id == mediaId);
-  }
 
   _startPlayer() async {
     await AudioService.start(
@@ -62,40 +68,67 @@ class SongsNotifier with ChangeNotifier {
     );
   }
 
-  int mediaItemIndex(MediaItem mediaItem) {
-    for (int i = 0; i < mediaList.length; i++) {
-      if (mediaList[i].id == mediaItem.id) {
-        print('Index of Item $i');
-        return i;
-      }
-    }
-    return -1;
-  }
-
   SongsNotifier() : _cachedSongs = Map() {
     //_cachedSongs = Map<String, List<Data>>();
     _initializeSongs().then((_) async {
-      if ('throw_back' == _songTypesIds[2]) {
-        List<Data> _combinationSongList =
-            _latestSongList + _hot100SongList + _throwbackSongList;
-        print('SONG_LIST ${_combinationSongList.length}');
+      if ('latest' == _songTypesIds[0]) {
+        await _startPlayer();
         _concertToMediaItem(
-          combinationSongList: _combinationSongList,
-        ).then((_) async {
-          await AudioService.addQueueItems(_mediaList);
+                mediaList: _latestSongList, addConvertedMedia: _latestMediaList)
+            .then((_) async {
+          await AudioService.addQueueItems(_latestMediaList);
           AudioService.play();
-        }).then((value) {
+        }).then((_) {
           _isLoading = false;
           notifyListeners();
         });
+        print('converted latest MEDIA');
+      }
+      if ('hot_100' == _songTypesIds[1]) {
+        _concertToMediaItem(
+          mediaList: _hot100SongList,
+          addConvertedMedia: _hot100MediaList,
+        );
+        print('converted Hot100 MEDIA');
+      }
+      if ('throw_back' == _songTypesIds[2]) {
+        _concertToMediaItem(
+          mediaList: _throwbackSongList,
+          addConvertedMedia: _throwbackMediaList,
+        );
+        print('converted Throwback MEDIA');
       }
     });
   }
 
-  Future _concertToMediaItem({List<Data> combinationSongList}) async {
-    await _startPlayer();
-    combinationSongList.forEach((media) async {
-      _mediaList.add(MediaItem(
+  void playMediaFromButtonPressed({
+    String playButton,
+    String playFromId,
+  }) async {
+    if (playButton == _songTypesIds[0]) {
+      await AudioService.replaceQueue(_latestMediaList).then((_) {
+        AudioService.playFromMediaId(playFromId);
+        print('Played From Latest: ${_latestMediaList.length}');
+      });
+    } else if (playButton == _songTypesIds[1]) {
+      await AudioService.replaceQueue(_hot100MediaList).then((_) {
+        AudioService.playFromMediaId(playFromId);
+        print('Played From HOT100: ${_hot100MediaList.length}');
+      });
+    } else if (playButton == _songTypesIds[2]) {
+      await AudioService.replaceQueue(_throwbackMediaList).then((_) {
+        AudioService.playFromMediaId(playFromId);
+        print('Played From THROWBACK: ${_throwbackMediaList.length}');
+      });
+    }
+  }
+
+  Future _concertToMediaItem({
+    List<Data> mediaList,
+    List<MediaItem> addConvertedMedia,
+  }) async {
+    mediaList.forEach((media) async {
+      addConvertedMedia.add(MediaItem(
           id: media.songFile.songUrl,
           album: media.name,
           title: media.name,
@@ -148,13 +181,13 @@ class SongsNotifier with ChangeNotifier {
       }
     }
 
-    print("_cachedSongs:  ${_cachedSongs[type]}");
+    //print("_cachedSongs:  ${_cachedSongs[type]}");
 
     return _cachedSongs[type];
   }
 
 ///////////////////////////
-  /*Future<List<MediaItem>> fetchMediaList() async {
+/*Future<List<MediaItem>> fetchMediaList() async {
     print("_latestSubject ${_latestSongList?.length}");
 
     var _lastQueuedItems = AudioService.queue;

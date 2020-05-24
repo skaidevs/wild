@@ -50,7 +50,7 @@ class Data with ChangeNotifier {
       name: parsedJson['name'] as String,
       shortUrl: parsedJson['short_url'] as String,
       artistsToString: parsedJson['artists_to_string'] as String,
-      duration: calculatedDuration(parsedJson['duration']),
+      duration: calculatedDuration(parsedJson['duration']) ?? 0.0,
       releasedAt: parsedJson['released_at'] as String,
       songFile: SongFile.fromJson(parsedJson['file']),
       songArt: SongArt.fromJson(parsedJson['song_art']),

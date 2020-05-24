@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/shape/gf_avatar_shape.dart';
 import 'package:provider/provider.dart';
-import 'package:wildstream/helpers/play_from_media_id.dart';
 import 'package:wildstream/models/song.dart';
 import 'package:wildstream/providers/latest_hot100_throwback.dart';
 import 'package:wildstream/widgets/build_song_item.dart';
@@ -53,12 +52,15 @@ class Throwback extends StatelessWidget {
           itemBuilder: (context, index) => BuildSongItem(
             song: notifier.throwbackSongList[index],
             onTap: () {
-              playFromMediaId(
-                mediaId:
-                    _songNotifier.throwbackSongList[index].songFile.songUrl,
+              notifier.playMediaFromButtonPressed(
+                playButton: 'throw_back',
+                playFromId: notifier.throwbackMediaList[index].id,
               );
-              print(
-                  'Tapped from ThroBack ${_songNotifier.throwbackSongList[index].songFile.songUrl}');
+              /*playFromMediaId(
+                mediaId: _songNotifier.throwbackMediaList[index].id,
+              );*/
+//              print(
+//                  'Tapped from ThroBack ${_songNotifier.throwbackMediaList[index].id}');
             },
           ),
         );
