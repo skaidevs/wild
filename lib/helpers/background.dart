@@ -144,6 +144,7 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
     await AudioServiceBackground.setQueue(_queue);
     _queueIndex = 0;
     print("onReplaceQueue Called ${_queue.length} and $_queueIndex");
+
     _skip(_queueIndex);
 
     return super.onReplaceQueue(queue);

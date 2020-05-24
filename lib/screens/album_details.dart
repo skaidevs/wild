@@ -18,6 +18,7 @@ class AlbumDetails extends StatelessWidget {
     Color textColor,
     IconData iconData,
     String text,
+    Function onPressed,
   }) {
     return Expanded(
       child: Container(
@@ -47,7 +48,7 @@ class AlbumDetails extends StatelessWidget {
               ),
             ],
           ),
-          onPressed: () {},
+          onPressed: onPressed,
         ),
       ),
     );
@@ -189,6 +190,12 @@ class AlbumDetails extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 _buildButton(
+                    onPressed: () {
+                      _detailsNotifier.playMediaFromButtonPressed(
+                        playButton: '_playAllFromButton',
+                      );
+                      print('playing ALL Button....');
+                    },
                     color: kColorWSGreen,
                     textColor: kColorWhite,
                     text: 'Play',
@@ -240,11 +247,11 @@ class AlbumDetails extends StatelessWidget {
                       index = index;
                       return InkWell(
                         onTap: () {
-                          _playFromMedia(
-                            mediaList: _detailsNotifier.mediaList,
-                            mediaUri: _notifier
+                          _notifier.playMediaFromButtonPressed(
+                            playFromId: _notifier
                                 .detailAlbumList[index].songFile.songUrl,
                           );
+                          print('playing from id....');
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(

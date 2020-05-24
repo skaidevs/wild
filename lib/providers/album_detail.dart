@@ -66,6 +66,22 @@ class AlbumDetailNotifier with ChangeNotifier {
     });
   }
 
+  void playMediaFromButtonPressed({
+    String playButton,
+    String playFromId,
+  }) async {
+    if (playButton == '_playAllFromButton') {
+      await AudioService.replaceQueue(_mediaList);
+      AudioService.play();
+      print('Played ALL From Button: ${_mediaInQueue.length}');
+    } else {
+      await AudioService.replaceQueue(_mediaList).then((_) {
+        AudioService.playFromMediaId(playFromId);
+      });
+      print('Played from ID: ${_mediaInQueue.length}');
+    }
+  }
+
   AlbumDetailNotifier() : _cachedAlbumDetail = Map() {}
 
   Future _concertToMediaItem({List<Songs> detailAlbumSongList}) async {
