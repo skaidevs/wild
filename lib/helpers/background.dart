@@ -199,6 +199,10 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
   }
 
   void _handlePlaybackCompleted() async {
+    if (_queue.last == _queue[_queueIndex]) {
+      _queueIndex = -1;
+      print("LAST QUEUE ${_queue.last} and ${_queue.length}");
+    }
     if (hasNext && _isRepeatEnable == false) {
       print("hasNext...");
       onSkipToNext();
