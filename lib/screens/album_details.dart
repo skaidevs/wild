@@ -1,10 +1,8 @@
 import 'dart:io';
 
-import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:wildstream/helpers/play_from_media_id.dart';
 import 'package:wildstream/providers/album.dart';
 import 'package:wildstream/providers/album_detail.dart';
 import 'package:wildstream/widgets/commons.dart';
@@ -52,31 +50,6 @@ class AlbumDetails extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  void _playFromMedia({
-    List<MediaItem> mediaList,
-    List<String> mediaInQueue,
-    String mediaUri,
-    String albumCode,
-  }) async {
-    await AudioService.replaceQueue(mediaList).then((_) {
-      playFromMediaId(mediaId: mediaUri);
-      print('Queue Added >: ${mediaList.length}');
-      //mediaInQueue.clear();
-    });
-    /*bool _isLoaded = false;
-    if (_isLoaded) {
-      playFromMediaId(mediaId: mediaUri);
-      print('Played from ID $mediaList');
-    } else {
-      await AudioService.replaceQueue(mediaList).then((_) {
-        playFromMediaId(mediaId: mediaUri);
-        print('Queue Added >: ${mediaList.length}');
-        //mediaInQueue.clear();
-        _isLoaded = true;
-      });
-    }*/
   }
 
   @override

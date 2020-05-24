@@ -65,6 +65,8 @@ class AlbumNotifier with ChangeNotifier {
 
         print('RUN?? ${album.data.length}');
       } else {
+        print('ERROR.......... ${albumResponse.body}');
+
         throw WildStreamError(
             'Album could not be fetched. {{}} ${albumResponse.body}');
       }

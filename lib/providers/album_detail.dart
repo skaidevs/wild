@@ -8,7 +8,7 @@ import 'package:wildstream/models/album_details.dart';
 import 'package:wildstream/providers/latest_hot100_throwback.dart';
 
 class AlbumDetailNotifier with ChangeNotifier {
-  Map<String, List<Songs>> _cachedAlbumDetail;
+  Map<String, Data> _cachedAlbumDetail;
   List<Songs> _detailAlbumList = [];
   UnmodifiableListView<Songs> get detailAlbumList =>
       UnmodifiableListView(_detailAlbumList);
@@ -31,39 +31,10 @@ class AlbumDetailNotifier with ChangeNotifier {
   String _shotUrl;
   String get shotUrl => _shotUrl;
 
-  Future<List<Songs>> loadAlumsDetailList({
+  Future<void> loadAlumsDetailList({
     String code,
   }) async {
-    return await _getAlumsDetailList(code: code).then((_) async {
-      /*var _lastQueuedItems = AudioService.queue;
-      if (_lastQueuedItems.isNotEmpty) {
-        _lastQueuedItems.clear();
-
-        print('Queue Changed >: ${_lastQueuedItems.length}');
-      }*/
-
-      /* if (_mediaInQueue[0] == _albumCode && _mediaInQueue.isNotEmpty) {
-        print('AL_ready in >: $_albumCode');
-        _isLoading = false;
-        notifyListeners();
-        return;
-      } else {
-        _concertToMediaItem(detailAlbumSongList: _detailAlbumList);
-        //await AudioService.replaceQueue(_mediaList);
-        print('Queue Changed >: ${_mediaInQueue.length}');
-        _mediaInQueue.add(code);
-        _isLoading = false;
-        notifyListeners();
-      }*/
-
-      _concertToMediaItem(detailAlbumSongList: _detailAlbumList);
-//      await AudioService.replaceQueue(_mediaList);
-//      print('Queue Changed >: ${_mediaInQueue.length}');
-      _isLoading = false;
-      notifyListeners();
-      print('CALLED IN ALBUM QUEUE');
-      return;
-    });
+    return await _initializeAndUpdateSongs(code: code);
   }
 
   void playMediaFromButtonPressed({
@@ -82,7 +53,9 @@ class AlbumDetailNotifier with ChangeNotifier {
     }
   }
 
-  AlbumDetailNotifier() : _cachedAlbumDetail = Map() {}
+  AlbumDetailNotifier() : _cachedAlbumDetail = Map() {
+    _initializeAndUpdateSongs();
+  }
 
   Future _concertToMediaItem({List<Songs> detailAlbumSongList}) async {
     _mediaList.clear();
@@ -99,49 +72,52 @@ class AlbumDetailNotifier with ChangeNotifier {
               'code': media.code,
             }),
       );
-//      print('MediaItems CONVERTED >: ${_mediaList.toList()}');
+      print('MediaItems CONVERTED >: ${_mediaList.toList()}');
     });
   }
 
-  Future<List<Songs>> _getAlumsDetailList({String code}) async {
+  Future<Data> _initializeAndUpdateSongs({String code}) async {
     _isLoading = true;
     notifyListeners();
-    final albumDetailResponse = await http.get(
-      Uri.encodeFull('$baseUrl' + 'album/' + '$code?&token=$token'),
-    );
-    //print('URL $baseUrl' + 'album/' + '$code?&token=$token');
-    //print('1111: ${albumDetailResponse.body}');
-
-    if (albumDetailResponse.statusCode == 200) {
-      _detailAlbumList.clear();
-
-      var extractedData =
-          json.decode(albumDetailResponse.body); //as Map<String, dynamic>;
-
-      //print('RESPONSE: ${albumDetailResponse.body}');
-      //print('RUN AND ${extractedData.toString()}');
-
-      if (extractedData == null) {
-        return null;
-      }
-      AlbumSong album = AlbumSong.fromJson(extractedData);
-
-      //print('RUN ALBUMLIST ${album.data}');
-
-      _detailAlbumList = album.data.songs;
-      _shotUrl = album.data.shortUrl;
-
-      notifyListeners();
-      _albumCode = code;
-//      print(
-//          'ALBUMLIST???? ${album.data.songs.length}  and ${_detailAlbumList.length}');
-    } else {
-      print('ERROR ${albumDetailResponse.body}');
-      _isLoading = false;
-      notifyListeners();
-      throw WildStreamError(
-          'Album could not be fetched. {{}} ${albumDetailResponse.body}');
+    final futureSong = await _getAlumsDetailList(code: code);
+    if (futureSong != null) {
+      _shotUrl = futureSong.shortUrl;
+      _detailAlbumList = futureSong.songs;
+      _concertToMediaItem(detailAlbumSongList: _detailAlbumList).then((_) {
+        _isLoading = false;
+        notifyListeners();
+        print('Length  and${_detailAlbumList?.length} ');
+      });
     }
-    return _detailAlbumList;
+    return futureSong;
+  }
+
+  Future<Data> _getAlumsDetailList({String code}) async {
+    print('CODE!!!!! $code');
+    if (code == null) {
+      return null;
+    }
+    if (!_cachedAlbumDetail.containsKey(code)) {
+      final albumDetailResponse = await http.get(
+        Uri.encodeFull('$baseUrl' + 'album/' + '$code?&token=$token'),
+      );
+      //print('1111: ${albumDetailResponse.body}');
+
+      if (albumDetailResponse.statusCode == 200) {
+        var extractedData = json.decode(albumDetailResponse.body);
+        if (extractedData == null) {
+          return null;
+        }
+        AlbumSong _album = AlbumSong.fromJson(extractedData);
+
+        _cachedAlbumDetail[code] = _album.data;
+      } else {
+        _isLoading = false;
+        notifyListeners();
+        throw WildStreamError(
+            'Album could not be fetched. {{}} ${albumDetailResponse.body}');
+      }
+    }
+    return _cachedAlbumDetail[code];
   }
 }

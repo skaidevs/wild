@@ -91,7 +91,7 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
     var playerStateSubscription = _audioPlayer.playbackStateStream
         .where((state) => state == AudioPlaybackState.completed)
         .listen((state) {
-      print("playerStateSubscription... ${mediaItem.duration} $_queueIndex");
+      print("playerStateSubscription... ${mediaItem?.duration} $_queueIndex");
 
       _handlePlaybackCompleted();
     });
@@ -135,7 +135,9 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
   @override
   Future<void> onReplaceQueue(List<MediaItem> queue) async {
     _queue.clear();
-    print('onReplaceQueue called first ${_queue.length} and  ${queue.length}');
+    _playing = true;
+
+    print('onReplaceQueue called first ${_queue.length} and  $_playing');
 
     queue.forEach((media) async {
       _queue.add(media);
@@ -143,8 +145,6 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
     });
     await AudioServiceBackground.setQueue(_queue);
     _queueIndex = 0;
-    print("onReplaceQueue Called ${_queue.length} and $_queueIndex");
-
     _skip(_queueIndex);
 
     return super.onReplaceQueue(queue);
@@ -361,7 +361,7 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
 
   @override
   void onSeekTo(int position) {
-    print("Duration ${position.toString()}");
+    //print("Duration ${position?.toString()}");
     _audioPlayer.seek(Duration(milliseconds: position));
   }
 
@@ -409,7 +409,7 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
   void _setState({@required BasicPlaybackState state, int position}) {
     if (position == null) {
       position = _audioPlayer.playbackEvent.position.inMilliseconds;
-      print("playbackEvent.position $position and State $state");
+      //print("playbackEvent.position $position and State $state");
     }
     AudioServiceBackground.setState(
       controls: getControls(state),
