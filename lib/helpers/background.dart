@@ -32,7 +32,7 @@ MediaControl stopControl = MediaControl(
 );
 
 class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
-  final _queue = <MediaItem>[];
+  List<MediaItem> _queue = <MediaItem>[];
 
   var _newQueue = <MediaItem>[];
 
@@ -169,6 +169,7 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
   @override
   Future onCustomAction(String name, arguments) {
     // TODO: implement onCustomAction
+    List<MediaItem> _originalQueue = <MediaItem>[];
 
     if (name == 'repeat') {
       if (arguments) {
@@ -178,13 +179,19 @@ class AudioPlayerTask extends BackgroundAudioTask with ChangeNotifier {
       }
 //      _isShuffledEnable = false;
       AudioServiceBackground.sendCustomEvent(_isRepeatEnable);
-      print(
-          "From RepeatEnable= $name | $arguments | $_isRepeatEnable and ShuffledEnable $_isShuffledEnable");
     } else if (name == 'shuffle') {
       if (arguments) {
         _isShuffledEnable = arguments;
+        _queue = _originalQueue;
+        _queue.shuffle();
+        //AudioServiceBackground.setQueue(_queue);
+
+        print("Shuffled= $_isShuffledEnable ${_queue.length}");
       } else {
         _isShuffledEnable = arguments;
+        _originalQueue = _queue;
+        //AudioServiceBackground.setQueue(_queue);
+        print("Shuffled= $_isShuffledEnable ${_queue.length} ");
       }
 //      _isRepeatEnable = false;
       AudioServiceBackground.sendCustomEvent(_isShuffledEnable);
