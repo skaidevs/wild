@@ -52,12 +52,14 @@ class BuildAlbumItem extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: album.artists
                         .map(
-                          (artist) => Text(
-                            '${artist.name}',
-                            style: kTextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: kColorWSGreen,
-                              fontSize: 16.0,
+                          (artist) => Expanded(
+                            child: Text(
+                              '${artist.name}',
+                              style: kTextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: kColorWSGreen,
+                                fontSize: 16.0,
+                              ),
                             ),
                           ),
                         )

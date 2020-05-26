@@ -18,26 +18,25 @@ class Throwback extends StatelessWidget {
       context,
       listen: false,
     );
-    return Container(
-      padding: Platform.isIOS
-          ? const EdgeInsets.fromLTRB(
-              0.0,
-              0.0,
-              0.0,
-              140.0,
-            )
-          : const EdgeInsets.fromLTRB(
-              0.0,
-              0.0,
-              0.0,
-              118.0,
-            ),
-      color: Theme.of(context).backgroundColor,
-      child: Consumer<SongsNotifier>(builder: (context, notifier, _) {
-        if (notifier.isLoading) {
-          return LoadingInfo();
-        }
-        return ListView.builder(
+    return Consumer<SongsNotifier>(builder: (context, notifier, _) {
+      if (notifier.isLoading) {
+        return LoadingInfo();
+      }
+      return Container(
+        padding: Platform.isIOS
+            ? const EdgeInsets.fromLTRB(
+                0.0,
+                0.0,
+                0.0,
+                116.0,
+              )
+            : const EdgeInsets.fromLTRB(
+                0.0,
+                0.0,
+                0.0,
+                116.0,
+              ),
+        child: ListView.builder(
           padding: const EdgeInsets.all(2.0),
           scrollDirection: Axis.vertical,
           shrinkWrap: true,
@@ -63,9 +62,9 @@ class Throwback extends StatelessWidget {
 //                  'Tapped from ThroBack ${_songNotifier.throwbackMediaList[index].id}');
             },
           ),
-        );
-      }),
-    );
+        ),
+      );
+    });
   }
 
   Widget _buildSong({Data song}) {

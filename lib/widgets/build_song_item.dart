@@ -27,85 +27,188 @@ class BuildSongItem extends StatelessWidget {
   Widget build(BuildContext context) {
     MediaItem _mediaItem;
     _mediaItem = mediaItem;
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 4.0,
-        vertical: 6.0,
-      ),
-      child: ListTile(
-        //key: PageStorageKey(0),
-        leading: hot100 == 'hot100'
-            ? Stack(
-                alignment: const Alignment(1.0, 1.0),
-                children: <Widget>[
-                  GFAvatar(
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(4.0),
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14.0,
+          vertical: 14.0,
+        ),
+        child:
+            /*ListTile(
+          //key: PageStorageKey(0),
+          leading: hot100 == 'hot100'
+              ? Stack(
+                  alignment: const Alignment(1.0, 1.0),
+                  children: <Widget>[
+                    GFAvatar(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(4.0),
+                      ),
+                      shape: GFAvatarShape.standard,
+                      size: 38.0,
+                      backgroundImage: NetworkImage(song.songArt.crops.crop100),
                     ),
-                    shape: GFAvatarShape.standard,
-                    size: 38.0,
-                    backgroundImage: NetworkImage(song.songArt.crops.crop100),
+                    Container(
+                      padding: const EdgeInsets.all(4.0),
+                      decoration: const BoxDecoration(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(6.0),
+                          bottomRight: Radius.circular(4.0),
+                        ),
+                        color: kColorWSYellow,
+                      ),
+                      child: Text(
+                        '$index',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : GFAvatar(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(6.0),
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(4.0),
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(6.0),
-                        bottomRight: Radius.circular(4.0),
-                      ),
-                      color: kColorWSYellow,
-                    ),
-                    child: Text(
-                      '$index',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  shape: GFAvatarShape.standard,
+                  size: 36.0,
+                  backgroundImage: NetworkImage(song.songArt.crops.crop100),
+                ),
+          title: Text(
+            '${song.name}',
+            style: TextStyle(
+              color: kColorWhite,
+            ),
+          ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(
+              top: 8.0,
+            ),
+            child: Text(
+              '${song.artistsToString}',
+              style: TextStyle(color: kColorWSGreen),
+            ),
+          ),
+          trailing: StreamBuilder<ScreenState>(
+            stream: _screenStateStream,
+            builder: (context, snapshot) {
+              final screenState = snapshot.data;
+              _mediaItem = screenState?.mediaItem;
+
+              if (_mediaItem?.id == song.songFile.songUrl) {
+                return _mediaIndicator();
+              } else {
+                return Icon(
+                  Icons.more_horiz,
+                  color: kColorWSGreen,
+                );
+              }
+            },
+          ),
+          onTap: onTap,
+          selected: true,
+        ),*/
+
+            Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Flexible(
+              child: Row(
+                children: <Widget>[
+                  hot100 == 'hot100'
+                      ? Stack(
+                          alignment: const Alignment(1.0, 1.0),
+                          children: <Widget>[
+                            GFAvatar(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(4.0),
+                              ),
+                              shape: GFAvatarShape.standard,
+                              size: 38.0,
+                              backgroundImage:
+                                  NetworkImage(song.songArt.crops.crop100),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(4.0),
+                              decoration: const BoxDecoration(
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(6.0),
+                                  bottomRight: Radius.circular(4.0),
+                                ),
+                                color: kColorWSYellow,
+                              ),
+                              child: Text(
+                                '$index',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : GFAvatar(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(6.0),
+                          ),
+                          shape: GFAvatarShape.standard,
+                          size: 36.0,
+                          backgroundImage:
+                              NetworkImage(song.songArt.crops.crop100),
+                        ),
+                  SizedBox(
+                    width: 16.0,
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          '${song.name}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          '${song.artistsToString}',
+                          style: kTextStyle(
+                            fontSize: 12.0,
+                            color: kColorWSGreen,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
-              )
-            : GFAvatar(
-                borderRadius: BorderRadius.all(
-                  Radius.circular(6.0),
-                ),
-                shape: GFAvatarShape.standard,
-                size: 36.0,
-                backgroundImage: NetworkImage(song.songArt.crops.crop100),
               ),
-        title: Text(
-          '${song.name}',
-          style: TextStyle(
-            color: kColorWhite,
-          ),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(
-            top: 8.0,
-          ),
-          child: Text(
-            '${song.artistsToString}',
-            style: TextStyle(color: kColorWSGreen),
-          ),
-        ),
-        trailing: StreamBuilder<ScreenState>(
-          stream: _screenStateStream,
-          builder: (context, snapshot) {
-            final screenState = snapshot.data;
-            _mediaItem = screenState?.mediaItem;
+            ),
+            SizedBox(
+              width: 10.0,
+            ),
+            StreamBuilder<ScreenState>(
+              stream: _screenStateStream,
+              builder: (context, snapshot) {
+                final screenState = snapshot.data;
+                _mediaItem = screenState?.mediaItem;
 
-            if (_mediaItem?.id == song.songFile.songUrl) {
-              return _mediaIndicator();
-            } else {
-              return Icon(
-                Icons.more_horiz,
-                color: kColorWSGreen,
-              );
-            }
-          },
+                if (_mediaItem?.id == song.songFile.songUrl) {
+                  return _mediaIndicator();
+                } else {
+                  return Icon(
+                    Icons.more_horiz,
+                    color: kColorWSGreen,
+                  );
+                }
+              },
+            ),
+          ],
         ),
-        onTap: onTap,
-        selected: true,
       ),
     );
   }

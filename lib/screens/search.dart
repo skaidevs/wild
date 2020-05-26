@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -45,6 +47,19 @@ class Search extends StatelessWidget {
         ],
       )*/
       body: Container(
+        padding: Platform.isIOS
+            ? const EdgeInsets.fromLTRB(
+                0.0,
+                0.0,
+                0.0,
+                116.0,
+              )
+            : const EdgeInsets.fromLTRB(
+                0.0,
+                0.0,
+                0.0,
+                116.0,
+              ),
         child: Consumer<SearchNotifier>(builder: (context, notifier, _) {
           MediaItem _mediaItem;
           if (notifier.isLoading) {
@@ -84,7 +99,7 @@ class Search extends StatelessWidget {
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
+                        horizontal: 14.0,
                         vertical: 14.0,
                       ),
                       child: Row(
@@ -125,7 +140,7 @@ class Search extends StatelessWidget {
                                       Text(
                                         '${notifier.searchSongList[index].artistsToString}',
                                         style: kTextStyle(
-                                          fontSize: 14.0,
+                                          fontSize: 12.0,
                                           color: kColorWSGreen,
                                         ),
                                       ),
@@ -147,21 +162,21 @@ class Search extends StatelessWidget {
                             ),
 
                           /*StreamBuilder<ScreenState>(
-                            stream: _screenStateStream,
-                            builder: (context, snapshot) {
-                              final screenState = snapshot.data;
-                              MediaItem _mediaItem = screenState?.mediaItem;
-                              if (_mediaItem?.id ==
-                                  notifier.mediaList[index].id) {
-                                return kMediaIndicator();
-                              } else {
-                                return Icon(
-                                  Icons.more_horiz,
-                                  color: kColorWSGreen,
-                                );
-                              }
-                            },
-                          ),*/
+                          stream: _screenStateStream,
+                          builder: (context, snapshot) {
+                            final screenState = snapshot.data;
+                            MediaItem _mediaItem = screenState?.mediaItem;
+                            if (_mediaItem?.id ==
+                                notifier.mediaList[index].id) {
+                              return kMediaIndicator();
+                            } else {
+                              return Icon(
+                                Icons.more_horiz,
+                                color: kColorWSGreen,
+                              );
+                            }
+                          },
+                        ),*/
                         ],
                       ),
                     ),
@@ -207,7 +222,7 @@ class FloatAppBar extends StatelessWidget with PreferredSizeWidget {
           left: 15,
           child: Container(
             decoration: BoxDecoration(
-              color: kColorWhite,
+              color: Colors.grey[900],
               borderRadius: BorderRadius.circular(
                 6.0,
               ),

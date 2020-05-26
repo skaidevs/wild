@@ -33,7 +33,7 @@ class Latest extends StatelessWidget {
                 0.0,
                 0.0,
                 0.0,
-                120.0,
+                116.0,
               ),
         child: ListView.builder(
           padding: const EdgeInsets.all(2.0),
@@ -47,23 +47,17 @@ class Latest extends StatelessWidget {
             color: Colors.white30,
           ),*/
           itemCount: notifier.latestSongList.length,
-          itemBuilder: (context, index) => InkWell(
+          itemBuilder: (context, index) => BuildSongItem(
+            song: notifier.latestSongList[index],
             onTap: () {
-              print(
-                  'Tapped from Latest ${_songNotifier.latestMediaList[index].id}');
+              notifier.playMediaFromButtonPressed(
+                playButton: 'latest',
+                playFromId: notifier.latestMediaList[index].id,
+              );
+              /*playFromMediaId(
+                mediaId: _songNotifier.latestMediaList[index].id,
+              );*/
             },
-            child: BuildSongItem(
-              song: notifier.latestSongList[index],
-              onTap: () {
-                notifier.playMediaFromButtonPressed(
-                  playButton: 'latest',
-                  playFromId: notifier.latestMediaList[index].id,
-                );
-                /*playFromMediaId(
-                  mediaId: _songNotifier.latestMediaList[index].id,
-                );*/
-              },
-            ),
           ),
         ),
       );
