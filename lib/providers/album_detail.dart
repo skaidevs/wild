@@ -44,12 +44,12 @@ class AlbumDetailNotifier with ChangeNotifier {
     if (playButton == '_playAllFromButton') {
       await AudioService.replaceQueue(_mediaList);
       AudioService.play();
-      print('Played ALL From Button: ${_mediaInQueue.length}');
+      print('Played ALL From Button: ${_mediaList.length}');
     } else {
       await AudioService.replaceQueue(_mediaList).then((_) {
         AudioService.playFromMediaId(playFromId);
       });
-      print('Played from ID: ${_mediaInQueue.length}');
+      print('Played from ID: ${_mediaList.length}');
     }
   }
 

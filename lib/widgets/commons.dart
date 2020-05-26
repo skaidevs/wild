@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 const MaterialColor bg_color = const MaterialColor(
   0xFF0A0A0A,
@@ -42,5 +43,12 @@ TextStyle kTextStyle({
     fontSize: fontSize,
     color: color,
     fontWeight: fontWeight,
+  );
+}
+
+FaIcon kMediaIndicator() {
+  return FaIcon(
+    FontAwesomeIcons.volumeUp,
+    color: kColorWSGreen,
   );
 }
