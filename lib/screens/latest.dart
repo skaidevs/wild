@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:wildstream/helpers/mediaItems.dart';
 import 'package:wildstream/providers/latest_hot100_throwback.dart';
-import 'package:wildstream/widgets/build_song_item.dart';
+import 'package:wildstream/widgets/build_lat_hot_thr_item.dart';
 import 'package:wildstream/widgets/loadingInfo.dart';
 
 class Latest extends StatelessWidget {
@@ -47,16 +48,14 @@ class Latest extends StatelessWidget {
             color: Colors.white30,
           ),*/
           itemCount: notifier.latestSongList.length,
-          itemBuilder: (context, index) => BuildSongItem(
+          itemBuilder: (context, index) => BuildLatestHotThrowBackItem(
             song: notifier.latestSongList[index],
             onTap: () {
-              notifier.playMediaFromButtonPressed(
+              playMediaFromButtonPressed(
+                mediaList: notifier.latestMediaList,
                 playButton: 'latest',
                 playFromId: notifier.latestMediaList[index].id,
               );
-              /*playFromMediaId(
-                mediaId: _songNotifier.latestMediaList[index].id,
-              );*/
             },
           ),
         ),

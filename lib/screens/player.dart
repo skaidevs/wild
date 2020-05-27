@@ -9,6 +9,7 @@ import 'package:marquee_flutter/marquee_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:wildstream/helpers/background.dart';
+import 'package:wildstream/helpers/mediaItems.dart';
 import 'package:wildstream/helpers/screen_state.dart';
 import 'package:wildstream/widgets/commons.dart';
 import 'package:wildstream/widgets/positionIndicator.dart';
@@ -35,7 +36,7 @@ class PlayerStreamBuilder extends StatelessWidget {
     return Container(
       color: Theme.of(context).backgroundColor,
       child: StreamBuilder<ScreenState>(
-        stream: _screenStateStream,
+        stream: screenStateStream,
         builder: (context, snapshot) {
           final screenState = snapshot.data;
           final queue = screenState?.queue;
@@ -226,25 +227,6 @@ class PlayerStreamBuilder extends StatelessWidget {
       ),
     );
   }
-
-  /// Encapsulate all the different data we're interested in into a single
-  /// stream so we don't have to nest StreamBuilders.
-  Stream<ScreenState> get _screenStateStream =>
-      Rx.combineLatest3<List<MediaItem>, MediaItem, PlaybackState, ScreenState>(
-        AudioService.queueStream,
-        AudioService.currentMediaItemStream,
-        AudioService.playbackStateStream,
-        (
-          queue,
-          mediaItem,
-          playbackState,
-        ) =>
-            ScreenState(
-          queue: queue,
-          mediaItem: mediaItem,
-          playbackState: playbackState,
-        ),
-      );
 
   RaisedButton startButton(String label, VoidCallback onPressed) =>
       RaisedButton(

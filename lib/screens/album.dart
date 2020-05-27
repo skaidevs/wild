@@ -54,7 +54,7 @@ class Album extends StatelessWidget {
             shrinkWrap: true,
             itemCount: notifier.albumListData.length,
             itemBuilder: (context, index) {
-              return BuildAlbumItem(
+              return BuildAlbumGridItem(
                 album: notifier.albumListData[index],
                 onTap: () => _push(
                   context: context,

@@ -8,6 +8,7 @@ import 'package:getflutter/shape/gf_avatar_shape.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
+import 'package:wildstream/helpers/mediaItems.dart';
 import 'package:wildstream/helpers/screen_state.dart';
 import 'package:wildstream/providers/bottom_navigator.dart';
 import 'package:wildstream/providers/latest_hot100_throwback.dart';
@@ -193,7 +194,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
                 dragPositionSubject: _dragPositionSubject,
               ),
               collapsed: StreamBuilder<ScreenState>(
-                stream: _screenStateStream,
+                stream: screenStateStream,
                 builder: (context, snapshot) {
                   final screenState = snapshot.data;
                   final mediaItem = screenState?.mediaItem;
@@ -382,25 +383,5 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
         color: Theme.of(context).accentColor,
         iconSize: 30.0,
         onPressed: AudioService.pause,
-      );
-
-  /// Encapsulate all the different data we're interested in into a single
-  /// stream so we don't have to nest StreamBuilders.
-  ///
-  Stream<ScreenState> get _screenStateStream =>
-      Rx.combineLatest3<List<MediaItem>, MediaItem, PlaybackState, ScreenState>(
-        AudioService.queueStream,
-        AudioService.currentMediaItemStream,
-        AudioService.playbackStateStream,
-        (
-          queue,
-          mediaItem,
-          playbackState,
-        ) =>
-            ScreenState(
-          queue: queue,
-          mediaItem: mediaItem,
-          playbackState: playbackState,
-        ),
       );
 }

@@ -6,8 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/shape/gf_avatar_shape.dart';
 import 'package:provider/provider.dart';
-import 'package:rxdart/rxdart.dart';
-import 'package:wildstream/helpers/screen_state.dart';
+import 'package:wildstream/helpers/mediaItems.dart';
 import 'package:wildstream/providers/search.dart';
 import 'package:wildstream/widgets/commons.dart';
 import 'package:wildstream/widgets/loadingInfo.dart';
@@ -92,10 +91,11 @@ class Search extends StatelessWidget {
                   itemCount: notifier.searchSongList.length,
                   itemBuilder: (context, index) => InkWell(
                     onTap: () {
-                      notifier.playMediaFromButtonPressed(
+                      playMediaFromButtonPressed(
+                        mediaList: notifier.mediaList,
                         playFromId: notifier.mediaList[index].id,
                       );
-                      print('playing from id....');
+                      print('playing from Search id....');
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -162,7 +162,7 @@ class Search extends StatelessWidget {
                             ),
 
                           /*StreamBuilder<ScreenState>(
-                          stream: _screenStateStream,
+                          stream: screenStateStream,
                           builder: (context, snapshot) {
                             final screenState = snapshot.data;
                             MediaItem _mediaItem = screenState?.mediaItem;
@@ -186,23 +186,6 @@ class Search extends StatelessWidget {
       ),
     );
   }
-
-  Stream<ScreenState> get _screenStateStream =>
-      Rx.combineLatest3<List<MediaItem>, MediaItem, PlaybackState, ScreenState>(
-        AudioService.queueStream,
-        AudioService.currentMediaItemStream,
-        AudioService.playbackStateStream,
-        (
-          queue,
-          mediaItem,
-          playbackState,
-        ) =>
-            ScreenState(
-          queue: queue,
-          mediaItem: mediaItem,
-          playbackState: playbackState,
-        ),
-      );
 }
 
 class FloatAppBar extends StatelessWidget with PreferredSizeWidget {

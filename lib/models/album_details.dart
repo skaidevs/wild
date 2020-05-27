@@ -2,29 +2,29 @@
 import 'package:flutter/cupertino.dart';
 
 class AlbumSong with ChangeNotifier {
-  final Data data;
+  final AlbumData data;
 
   AlbumSong({
     this.data,
   });
   factory AlbumSong.fromJson(Map<String, dynamic> parsedJson) {
     return AlbumSong(
-      data: Data.fromJson(parsedJson['data']),
+      data: AlbumData.fromJson(parsedJson['data']),
     );
   }
 }
 
-class Data with ChangeNotifier {
+class AlbumData with ChangeNotifier {
   final String shortUrl;
   final List<Songs> songs;
-  Data({
+  AlbumData({
     this.shortUrl,
     this.songs,
   });
-  factory Data.fromJson(Map<String, dynamic> parsedJson) {
+  factory AlbumData.fromJson(Map<String, dynamic> parsedJson) {
     var list = parsedJson['songs'] as List;
     List<Songs> songsData = list.map((i) => Songs.fromJson(i)).toList();
-    return Data(
+    return AlbumData(
       songs: songsData,
       shortUrl: parsedJson['short_url'],
     );

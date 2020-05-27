@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:wildstream/helpers/background.dart';
+import 'package:wildstream/helpers/mediaItems.dart';
 import 'package:wildstream/models/song.dart';
 
 enum SongTypes {
@@ -19,6 +19,8 @@ const token =
 
 class SongsNotifier with ChangeNotifier {
   Map<String, List<Data>> _cachedSongs;
+  UnmodifiableListView<String> get songTypesIds =>
+      UnmodifiableListView(_songTypesIds);
   static List<String> _songTypesIds = [
     'latest',
     'hot_100',
@@ -58,24 +60,15 @@ class SongsNotifier with ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  _startPlayer() async {
-    await AudioService.start(
-      backgroundTaskEntrypoint: _audioPlayerTaskEntryPoint,
-      androidNotificationChannelName: 'WildStream',
-      notificationColor: 0xFF0A0A0A,
-      androidNotificationIcon: 'drawable/ic_notification',
-      enableQueue: true,
-    );
-  }
-
   SongsNotifier() : _cachedSongs = Map() {
     //_cachedSongs = Map<String, List<Data>>();
     _initializeSongs().then((_) async {
       if ('latest' == _songTypesIds[0]) {
-        await _startPlayer();
-        _concertToMediaItem(
-                mediaList: _latestSongList, addConvertedMedia: _latestMediaList)
-            .then((_) async {
+        await startPlayer();
+        concertSongsToMediaItem(
+          songsList: _latestSongList,
+          mediaItems: _latestMediaList,
+        ).then((_) async {
           await AudioService.addQueueItems(_latestMediaList);
           AudioService.play();
         }).then((_) {
@@ -85,60 +78,19 @@ class SongsNotifier with ChangeNotifier {
         print('converted latest MEDIA');
       }
       if ('hot_100' == _songTypesIds[1]) {
-        _concertToMediaItem(
-          mediaList: _hot100SongList,
-          addConvertedMedia: _hot100MediaList,
+        concertSongsToMediaItem(
+          songsList: _hot100SongList,
+          mediaItems: _hot100MediaList,
         );
         print('converted Hot100 MEDIA');
       }
       if ('throw_back' == _songTypesIds[2]) {
-        _concertToMediaItem(
-          mediaList: _throwbackSongList,
-          addConvertedMedia: _throwbackMediaList,
+        concertSongsToMediaItem(
+          songsList: _throwbackSongList,
+          mediaItems: _throwbackMediaList,
         );
         print('converted Throwback MEDIA');
       }
-    });
-  }
-
-  void playMediaFromButtonPressed({
-    String playButton,
-    String playFromId,
-  }) async {
-    if (playButton == _songTypesIds[0]) {
-      await AudioService.replaceQueue(_latestMediaList).then((_) {
-        AudioService.playFromMediaId(playFromId);
-        print('Played From Latest: ${_latestMediaList.length}');
-      });
-    } else if (playButton == _songTypesIds[1]) {
-      await AudioService.replaceQueue(_hot100MediaList).then((_) {
-        AudioService.playFromMediaId(playFromId);
-        print('Played From HOT100: ${_hot100MediaList.length}');
-      });
-    } else if (playButton == _songTypesIds[2]) {
-      await AudioService.replaceQueue(_throwbackMediaList).then((_) {
-        AudioService.playFromMediaId(playFromId);
-        print('Played From THROWBACK: ${_throwbackMediaList.length}');
-      });
-    }
-  }
-
-  Future _concertToMediaItem({
-    List<Data> mediaList,
-    List<MediaItem> addConvertedMedia,
-  }) async {
-    mediaList.forEach((media) async {
-      addConvertedMedia.add(MediaItem(
-          id: media.songFile.songUrl,
-          album: media.name,
-          title: media.name,
-          artist: media.artistsToString,
-          duration: media.duration,
-          artUri: media.songArt.crops.crop500,
-          extras: {
-            'code': media.code,
-          }));
-      //print('MediaItems CONVERTED >: ${_mediaList.toList()}');
     });
   }
 
@@ -223,92 +175,4 @@ class WildStreamError {
   final String message;
 
   WildStreamError(this.message);
-}
-
-void _audioPlayerTaskEntryPoint() async {
-  AudioServiceBackground.run(() => AudioPlayerTask());
-}
-
-class Hot100List with ChangeNotifier {
-  /*List<MediaItem> _hot100MediaList = [];
-  List<MediaItem> get hot100MediaList {
-    return [..._hot100MediaList];
-  }
-
-  Future<List<MediaItem>> loadHot100() async {
-    return _fetchHot100();
-  }
-
-  Future<List<MediaItem>> _fetchHot100() async {
-    List<Data> _hot100SongsList = [];
-    Song _hot100Songs;
-    String token =
-        'u8BC3Y6XaWGlplNldAljni4YHbiCSlsTKTteiGe4E9ibaN49rf5pcZRcDkz40zOky8oZeuDXYdRCj15rGbpp66ThucN8OAb735gbvnhEJNN6aSIz0ck0RjDzbjVmKZHan5pYUlriitSCNDDPWRYriumIB1R8HlPmVWO7IQ5k6TQNvEWSNduaMB7IuKHknbVPGqodBtlf';
-    try {
-      http.Response response = await http.get(
-        Uri.encodeFull(
-          'https://www.wildstream.ng/api/songs?type=hot_100&token=$token',
-        ),
-      );
-      var extractedData = json.decode(response.body) as Map<String, dynamic>;
-
-      if (extractedData == null) {
-        return null;
-      }
-      _hot100Songs = Song.fromJson(extractedData);
-
-      if (_hot100Songs.name == 'Hot 100') {
-        _hot100SongsList = _hot100Songs.data.toList();
-        print("Hott.... ${_hot100SongsList[1].songArt.crops.crop500}");
-
-        var _lastQueuedItems = AudioService.queue;
-        if (_hot100MediaList.isEmpty || _hot100MediaList == null) {
-          _hot100SongsList.forEach((mediaData) => {
-                _hot100MediaList.add(
-                  MediaItem(
-                    id: mediaData.songFile.songUrl,
-                    album: mediaData.name,
-                    title: mediaData.name,
-                    artist: mediaData.artistsToString,
-                    duration: mediaData.duration,
-                    artUri: mediaData.songArt.crops.crop500,
-                  ),
-                ),
-              });
-
-          print("AudioService.queue.... $_lastQueuedItems");
-*/ /*          if (Platform.isIOS) {
-            if (_lastQueuedItems == null) {
-              await AudioService.addQueueItems(_hot100MediaList);
-              print(
-                  "Platform.isIOS AudioService.addQueueItem Called ${_hot100MediaList.length}");
-              AudioService.play();
-            } else {
-              notifyListeners();
-              print(
-                  "Platform.isIOS _lastQueuedItems ${_lastQueuedItems.length}");
-              return _hot100MediaList;
-            }
-          } else {
-            if (_lastQueuedItems.isEmpty) {
-              await AudioService.addQueueItems(_hot100MediaList);
-              print(
-                  "AudioService.addQueueItem Called ${_hot100MediaList.length}");
-//              AudioService.play();
-            } else {
-              notifyListeners();
-              print("_lastQueuedItems ${_lastQueuedItems.length} ");
-              return _hot100MediaList;
-            }
-          }*/ /*
-
-          notifyListeners();
-        }
-      }
-    } catch (error) {
-      print("Error fetching Hot100 Songs $error");
-    }
-
-    return _hot100MediaList;
-  }*/
 }

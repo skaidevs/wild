@@ -1,59 +1,17 @@
 import 'dart:io';
 
-import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:rxdart/rxdart.dart';
-import 'package:wildstream/helpers/screen_state.dart';
+import 'package:wildstream/helpers/mediaItems.dart';
 import 'package:wildstream/providers/album.dart';
 import 'package:wildstream/providers/album_detail.dart';
+import 'package:wildstream/widgets/build_album_list_item.dart';
 import 'package:wildstream/widgets/commons.dart';
 import 'package:wildstream/widgets/loadingInfo.dart';
 
 class AlbumDetails extends StatelessWidget {
   static const routeName = '/album_detail';
-
-  Expanded _buildButton({
-    Color color,
-    Color textColor,
-    IconData iconData,
-    String text,
-    Function onPressed,
-  }) {
-    return Expanded(
-      child: Container(
-        height: 42,
-        child: RaisedButton(
-          elevation: 1.0,
-          color: color,
-          textColor: textColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              4.0,
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              FaIcon(iconData),
-              SizedBox(
-                width: 10.0,
-              ),
-              Text(
-                text,
-                style: kTextStyle(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          onPressed: onPressed,
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -165,9 +123,10 @@ class AlbumDetails extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
-                _buildButton(
+                kBuildPlayAndShuffleButton(
                     onPressed: () {
-                      _detailsNotifier.playMediaFromButtonPressed(
+                      playMediaFromButtonPressed(
+                        mediaList: _detailsNotifier.mediaList,
                         playButton: '_playAllFromButton',
                       );
                       print('playing ALL Button....');
@@ -179,7 +138,7 @@ class AlbumDetails extends StatelessWidget {
                 SizedBox(
                   width: 16.0,
                 ),
-                _buildButton(
+                kBuildPlayAndShuffleButton(
                     color: kColorWhite,
                     textColor: kColorWSAltBlack,
                     text: 'Shuffle',
@@ -215,92 +174,15 @@ class AlbumDetails extends StatelessWidget {
                           itemCount: _notifier.detailAlbumList.length,
                           itemBuilder: (context, index) {
                             index = index;
-                            return InkWell(
+                            return BuildAlbumList(
+                              index: index,
                               onTap: () {
-                                _notifier.playMediaFromButtonPressed(
-                                  playFromId: _notifier
-                                      .detailAlbumList[index].songFile.songUrl,
+                                playMediaFromButtonPressed(
+                                  mediaList: _notifier.mediaList,
+                                  playFromId: _notifier.mediaList[index].id,
                                 );
                                 print('playing from id....');
                               },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14.0,
-                                  vertical: 16.0,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: <Widget>[
-                                    Flexible(
-                                      child: Row(
-                                        children: <Widget>[
-                                          Text(
-                                            '${index + 1}.',
-                                            style: kTextStyle(
-                                              fontSize: 16.0,
-                                              fontWeight: FontWeight.bold,
-                                              color: kColorWSGreen,
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            width: 10.0,
-                                          ),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: <Widget>[
-                                                Text(
-                                                  '${_notifier.detailAlbumList[index].name}',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16,
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                                SizedBox(height: 5),
-                                                Text(
-                                                  '${_notifier.detailAlbumList[index].artistsToString}',
-                                                  style: kTextStyle(
-                                                    fontSize: 14.0,
-                                                    color: kColorWSGreen,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 10.0,
-                                    ),
-
-                                    StreamBuilder<ScreenState>(
-                                      stream: _screenStateStream,
-                                      builder: (context, snapshot) {
-                                        final screenState = snapshot.data;
-                                        MediaItem _mediaItem =
-                                            screenState?.mediaItem;
-                                        if (_mediaItem?.id ==
-                                            _notifier.mediaList[index].id) {
-                                          return _mediaIndicator();
-                                        } else {
-                                          return Icon(
-                                            Icons.more_horiz,
-                                            color: kColorWSGreen,
-                                          );
-                                        }
-                                      },
-                                    ),
-
-//                               _playButton(context: context),
-                                  ],
-                                ),
-                              ),
                             );
                           }),
                     ),
@@ -310,28 +192,4 @@ class AlbumDetails extends StatelessWidget {
       ),
     );
   }
-
-  FaIcon _mediaIndicator() {
-    return FaIcon(
-      FontAwesomeIcons.volumeUp,
-      color: kColorWSGreen,
-    );
-  }
-
-  Stream<ScreenState> get _screenStateStream =>
-      Rx.combineLatest3<List<MediaItem>, MediaItem, PlaybackState, ScreenState>(
-        AudioService.queueStream,
-        AudioService.currentMediaItemStream,
-        AudioService.playbackStateStream,
-        (
-          queue,
-          mediaItem,
-          playbackState,
-        ) =>
-            ScreenState(
-          queue: queue,
-          mediaItem: mediaItem,
-          playbackState: playbackState,
-        ),
-      );
 }

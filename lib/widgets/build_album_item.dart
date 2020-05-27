@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:wildstream/models/album.dart';
 import 'package:wildstream/widgets/commons.dart';
 
-class BuildAlbumItem extends StatelessWidget {
+class BuildAlbumGridItem extends StatelessWidget {
   final Data album;
   final Function onTap;
 
-  const BuildAlbumItem({
+  const BuildAlbumGridItem({
     Key key,
     this.album,
     this.onTap,

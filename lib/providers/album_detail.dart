@@ -4,11 +4,12 @@ import 'dart:convert';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
+import 'package:wildstream/helpers/mediaItems.dart';
 import 'package:wildstream/models/album_details.dart';
 import 'package:wildstream/providers/latest_hot100_throwback.dart';
 
 class AlbumDetailNotifier with ChangeNotifier {
-  Map<String, Data> _cachedAlbumDetail;
+  Map<String, AlbumData> _cachedAlbumDetail;
   List<Songs> _detailAlbumList = [];
   UnmodifiableListView<Songs> get detailAlbumList =>
       UnmodifiableListView(_detailAlbumList);
@@ -37,53 +38,21 @@ class AlbumDetailNotifier with ChangeNotifier {
     return await _initializeAndUpdateSongs(code: code);
   }
 
-  void playMediaFromButtonPressed({
-    String playButton,
-    String playFromId,
-  }) async {
-    if (playButton == '_playAllFromButton') {
-      await AudioService.replaceQueue(_mediaList);
-      AudioService.play();
-      print('Played ALL From Button: ${_mediaList.length}');
-    } else {
-      await AudioService.replaceQueue(_mediaList).then((_) {
-        AudioService.playFromMediaId(playFromId);
-      });
-      print('Played from ID: ${_mediaList.length}');
-    }
-  }
-
   AlbumDetailNotifier() : _cachedAlbumDetail = Map() {
     _initializeAndUpdateSongs();
   }
 
-  Future _concertToMediaItem({List<Songs> detailAlbumSongList}) async {
-    _mediaList.clear();
-    detailAlbumSongList.forEach((media) async {
-      _mediaList.add(
-        MediaItem(
-            id: media.songFile.songUrl,
-            album: media.name,
-            title: media.name,
-            artist: media.artistsToString,
-            duration: media.duration,
-            artUri: media.songArt.crops.crop500,
-            extras: {
-              'code': media.code,
-            }),
-      );
-      print('MediaItems CONVERTED >: ${_mediaList.toList()}');
-    });
-  }
-
-  Future<Data> _initializeAndUpdateSongs({String code}) async {
+  Future<AlbumData> _initializeAndUpdateSongs({String code}) async {
     _isLoading = true;
     notifyListeners();
     final futureSong = await _getAlumsDetailList(code: code);
     if (futureSong != null) {
       _shotUrl = futureSong.shortUrl;
       _detailAlbumList = futureSong.songs;
-      _concertToMediaItem(detailAlbumSongList: _detailAlbumList).then((_) {
+      convertAlbumDetailsToMediaItem(
+        detailAlbumSongList: _detailAlbumList,
+        mediaItems: _mediaList,
+      ).then((_) {
         _isLoading = false;
         notifyListeners();
         print('Length  and${_detailAlbumList?.length} ');
@@ -92,7 +61,7 @@ class AlbumDetailNotifier with ChangeNotifier {
     return futureSong;
   }
 
-  Future<Data> _getAlumsDetailList({String code}) async {
+  Future<AlbumData> _getAlumsDetailList({String code}) async {
     print('CODE!!!!! $code');
     if (code == null) {
       return null;

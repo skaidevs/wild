@@ -27,22 +27,6 @@ class SearchNotifier with ChangeNotifier {
     return _getSearchedSongs(query: query);
   }
 
-  void playMediaFromButtonPressed({
-    String playButton,
-    String playFromId,
-  }) async {
-    if (playButton == '_playAllFromButton') {
-      await AudioService.replaceQueue(_mediaList);
-      AudioService.play();
-      print('Played ALL From Button: ${_mediaList.length}');
-    } else {
-      await AudioService.replaceQueue(_mediaList).then((_) {
-        AudioService.playFromMediaId(playFromId);
-      });
-      print('Played from ID: ${_mediaList.length}');
-    }
-  }
-
   Future _concertToMediaItem({List<Data> searchSongList}) async {
     _mediaList.clear();
     searchSongList.forEach((media) async {

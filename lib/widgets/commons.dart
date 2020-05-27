@@ -52,3 +52,44 @@ FaIcon kMediaIndicator() {
     color: kColorWSGreen,
   );
 }
+
+Expanded kBuildPlayAndShuffleButton({
+  Color color,
+  Color textColor,
+  IconData iconData,
+  String text,
+  Function onPressed,
+}) {
+  return Expanded(
+    child: Container(
+      height: 42,
+      child: RaisedButton(
+        elevation: 1.0,
+        color: color,
+        textColor: textColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            4.0,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            FaIcon(iconData),
+            SizedBox(
+              width: 10.0,
+            ),
+            Text(
+              text,
+              style: kTextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        onPressed: onPressed,
+      ),
+    ),
+  );
+}
