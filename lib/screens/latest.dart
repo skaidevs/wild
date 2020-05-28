@@ -11,6 +11,8 @@ import 'package:wildstream/widgets/loadingInfo.dart';
 class Latest extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    print("Latest Build");
+
     bool _isLoadingMedia = false;
     MediaItem currentMediaIndex;
     final _songNotifier = Provider.of<SongsNotifier>(
@@ -50,6 +52,8 @@ class Latest extends StatelessWidget {
           itemCount: notifier.latestSongList.length,
           itemBuilder: (context, index) => BuildLatestHotThrowBackItem(
             song: notifier.latestSongList[index],
+            index: index,
+            songType: songTypes[0],
             onTap: () {
               playMediaFromButtonPressed(
                 mediaList: notifier.latestMediaList,

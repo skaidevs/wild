@@ -47,8 +47,8 @@ class Hot100 extends StatelessWidget {
           itemCount: notifier.hot100SongList.length,
           itemBuilder: (context, index) => BuildLatestHotThrowBackItem(
             song: notifier.hot100SongList[index],
-            index: index + 1,
-            hot100: 'hot100',
+            index: index,
+            songType: songTypes[1],
             onTap: () {
               playMediaFromButtonPressed(
                 mediaList: notifier.hot100MediaList,

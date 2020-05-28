@@ -84,9 +84,12 @@ class BuildAlbumList extends StatelessWidget {
                 if (_mediaItem?.id == notifier.mediaList[index].id) {
                   return kMediaIndicator();
                 } else {
-                  return Icon(
-                    Icons.more_horiz,
-                    color: kColorWSGreen,
+                  return IconButton(
+                    onPressed: () {},
+                    icon: Icon(
+                      Icons.more_horiz,
+                      color: kColorWSGreen,
+                    ),
                   );
                 }
               },

@@ -47,6 +47,8 @@ class Throwback extends StatelessWidget {
           itemCount: notifier.throwbackSongList.length,
           itemBuilder: (context, index) => BuildLatestHotThrowBackItem(
             song: notifier.throwbackSongList[index],
+            index: index,
+            songType: songTypes[2],
             onTap: () {
               playMediaFromButtonPressed(
                 mediaList: notifier.throwbackMediaList,

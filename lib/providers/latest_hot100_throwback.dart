@@ -8,27 +8,22 @@ import 'package:http/http.dart' as http;
 import 'package:wildstream/helpers/mediaItems.dart';
 import 'package:wildstream/models/song.dart';
 
-enum SongTypes {
-  latest,
-  hot100,
-  throwback,
-}
 const baseUrl = 'https://www.wildstream.ng/api/';
 const token =
-    'iX62dkPex5pV1oA3TgzretMJHECqmlu8uBuCwOjbtZ5wao3rHpP7H4H61XvuFiDS3zBEUVt2L9TFqMFM4zhROBNFXP5O2sIdjnj7qQRnWWlQ7LIkxQLceZ0K98BieLQWdACr4t5dwGcWexZz555RhUjedBIXrkLapewmDJRzLvmDBxNdvAVEc9qz0aidke5w3RyBvoLk';
+    'uij7DHm8k8BBIlwdsWjGde0UM4HeztSOU2VZCVrhKuYGe3VidGyoKnguik7bmkyJBOjEAGSgFbKEhI18no1VPJr3thIRw6HhdpYaVFTdXzkJi3hNjSYX5r8sIe4onYYKia28KjTk38MJrUzq7oPHZqUn6TvFOryYb9LqVDzipBP2aH3ubsc3txQOGsxMRQlc4L2vyvyz';
 
 class SongsNotifier with ChangeNotifier {
   Map<String, List<Data>> _cachedSongs;
   UnmodifiableListView<String> get songTypesIds =>
-      UnmodifiableListView(_songTypesIds);
-  static List<String> _songTypesIds = [
-    'latest',
-    'hot_100',
-    'throw_back',
-  ];
+      UnmodifiableListView(songTypes);
+
   List<Data> _songListData = [];
   UnmodifiableListView<Data> get songListData =>
       UnmodifiableListView(_songListData);
+
+  List<Data> _mediaItems = [];
+  UnmodifiableListView<Data> get mediaItems =>
+      UnmodifiableListView(_mediaItems);
 
   List<Data> _latestSongList = [];
   UnmodifiableListView<Data> get latestSongList =>
@@ -63,7 +58,7 @@ class SongsNotifier with ChangeNotifier {
   SongsNotifier() : _cachedSongs = Map() {
     //_cachedSongs = Map<String, List<Data>>();
     _initializeSongs().then((_) async {
-      if ('latest' == _songTypesIds[0]) {
+      if ('latest' == songTypes[0]) {
         await startPlayer();
         concertSongsToMediaItem(
           songsList: _latestSongList,
@@ -72,19 +67,19 @@ class SongsNotifier with ChangeNotifier {
           await AudioService.addQueueItems(_latestMediaList);
           AudioService.play();
         }).then((_) {
+          print('SONGS LIST ITEMS>> ${songListData.length}');
           _isLoading = false;
           notifyListeners();
         });
-        print('converted latest MEDIA');
       }
-      if ('hot_100' == _songTypesIds[1]) {
+      if ('hot_100' == songTypes[1]) {
         concertSongsToMediaItem(
           songsList: _hot100SongList,
           mediaItems: _hot100MediaList,
         );
         print('converted Hot100 MEDIA');
       }
-      if ('throw_back' == _songTypesIds[2]) {
+      if ('throw_back' == songTypes[2]) {
         concertSongsToMediaItem(
           songsList: _throwbackSongList,
           mediaItems: _throwbackMediaList,
@@ -94,15 +89,17 @@ class SongsNotifier with ChangeNotifier {
     });
   }
 
+//  Iterable<String> get songTypes => null;
+
   Future<void> _initializeSongs() async {
     _latestSongList = _songListData = await _updateSongs(
-      songType: _songTypesIds[0],
+      songType: songTypes[0],
     );
     _hot100SongList = _songListData = await _updateSongs(
-      songType: _songTypesIds[1],
+      songType: songTypes[1],
     );
     _throwbackSongList = _songListData = await _updateSongs(
-      songType: _songTypesIds[2],
+      songType: songTypes[2],
     );
   }
 

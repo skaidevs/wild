@@ -44,7 +44,7 @@ Stream<ScreenState> get screenStateStream =>
       ),
     );
 
-const List<String> _songTypesIds = [
+const List<String> songTypes = [
   'latest',
   'hot_100',
   'throw_back',
@@ -59,17 +59,17 @@ void playMediaFromButtonPressed({
     await AudioService.replaceQueue(mediaList);
     AudioService.play();
     print('Played ALL From Button: ${mediaList.length}');
-  } else if (playButton == _songTypesIds[0]) {
+  } else if (playButton == songTypes[0]) {
     await AudioService.replaceQueue(mediaList).then((_) {
       AudioService.playFromMediaId(playFromId);
       print('Played From Latest: ${mediaList.length}');
     });
-  } else if (playButton == _songTypesIds[1]) {
+  } else if (playButton == songTypes[1]) {
     await AudioService.replaceQueue(mediaList).then((_) {
       AudioService.playFromMediaId(playFromId);
       print('Played From HOT100: ${mediaList.length}');
     });
-  } else if (playButton == _songTypesIds[2]) {
+  } else if (playButton == songTypes[2]) {
     await AudioService.replaceQueue(mediaList).then((_) {
       AudioService.playFromMediaId(playFromId);
       print('Played From THROWBACK: ${mediaList.length}');
