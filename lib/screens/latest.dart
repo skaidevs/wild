@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wildstream/helpers/mediaItems.dart';
@@ -13,12 +12,6 @@ class Latest extends StatelessWidget {
   Widget build(BuildContext context) {
     print("Latest Build");
 
-    bool _isLoadingMedia = false;
-    MediaItem currentMediaIndex;
-    final _songNotifier = Provider.of<SongsNotifier>(
-      context,
-      listen: false,
-    );
     //_addMedia.fetchMediaList();
     return Consumer<SongsNotifier>(builder: (context, notifier, _) {
       if (notifier.isLoading) {

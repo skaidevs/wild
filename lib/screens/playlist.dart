@@ -3,6 +3,7 @@ import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/shape/gf_avatar_shape.dart';
 import 'package:provider/provider.dart';
 import 'package:wildstream/helpers/downloads.dart';
+import 'package:wildstream/helpers/mediaItems.dart';
 import 'package:wildstream/widgets/commons.dart';
 
 /*class Playlist extends StatelessWidget {
@@ -168,19 +169,31 @@ class Playlist extends StatelessWidget {
 
         return ListView.builder(
             itemCount: downloads.length,
+            padding: const EdgeInsets.all(2.0),
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            physics: ClampingScrollPhysics(),
             itemBuilder: (_, index) {
               final _itemDownload = downloads[index];
-              return _buildDownloadedItem(_itemDownload, _downloadDao);
+              return _buildDownloadedItem(
+                  downloadDao: _downloadDao,
+                  itemDownload: _itemDownload,
+                  onTap: () {
+                    playMediaFromButtonPressed(
+                      mediaList: _downloadDao.mediaItems,
+                      playButton: 'offlineDownload',
+                      playFromId: _itemDownload.mediaIdUri,
+                    );
+                  });
             });
       },
     );
   }
 
-  Widget _buildDownloadedItem(Download itemDownload, DownloadDao dataDou) {
+  Widget _buildDownloadedItem(
+      {Download itemDownload, DownloadDao downloadDao, Function onTap}) {
     return InkWell(
-      onTap: () {
-        print('PlayMedia');
-      },
+      onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: 12.0,
@@ -236,7 +249,7 @@ class Playlist extends StatelessWidget {
             ),
             IconButton(
               onPressed: () async {
-                dataDou.removeDownloads(
+                downloadDao.removeDownloads(
                   itemDownload.mediaCode,
                 );
                 print('REMOVE Delete ${itemDownload.mediaCode}');
@@ -247,23 +260,24 @@ class Playlist extends StatelessWidget {
               ),
             ),
             /*StreamBuilder<ScreenState>(
-                        stream: screenStateStream,
-                        builder: (context, snapshot) {
-                          final screenState = snapshot.data;
-                          _mediaItem = screenState?.mediaItem;
-                          if (_mediaItem?.id == song.songFile.songUrl) {
-                            return kMediaIndicator();
-                          } else {
-                            return IconButton(
-                              onPressed: () => null,
-                              icon: Icon(
-                                Icons.more_horiz,
-                                color: kColorWSGreen,
-                              ),
-                            );
-                          }
-                        },
-                      ),*/
+              stream: screenStateStream,
+              builder: (context, snapshot) {
+                final screenState = snapshot.data;
+                MediaItem mediaItem;
+                mediaItem = screenState?.mediaItem;
+                if (mediaItem?.id == itemDownload.mediaIdUri) {
+                  return kMediaIndicator();
+                } else {
+                  return IconButton(
+                    onPressed: () => null,
+                    icon: Icon(
+                      Icons.more_horiz,
+                      color: kColorWSGreen,
+                    ),
+                  );
+                }
+              },
+            ),*/
           ],
         ),
       ),

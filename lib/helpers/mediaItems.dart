@@ -1,6 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:wildstream/helpers/background.dart';
+import 'package:wildstream/helpers/downloads.dart';
 import 'package:wildstream/helpers/screen_state.dart';
 import 'package:wildstream/models/album_details.dart';
 import 'package:wildstream/models/song.dart';
@@ -74,6 +75,11 @@ void playMediaFromButtonPressed({
       AudioService.playFromMediaId(playFromId);
       print('Played From THROWBACK: ${mediaList.length}');
     });
+  } else if (playButton == 'offlineDownload') {
+    await AudioService.replaceQueue(mediaList).then((_) {
+      AudioService.playFromMediaId(playFromId);
+      print('Played From OFFLINE DOWNLOAD: ${mediaList.length}');
+    });
   } else {
     await AudioService.replaceQueue(mediaList).then((_) {
       AudioService.playFromMediaId(playFromId);
@@ -82,6 +88,7 @@ void playMediaFromButtonPressed({
   }
 }
 
+//CONVERTED MEDIA_ITEMS
 Future convertAlbumDetailsToMediaItem({
   List<Songs> detailAlbumSongList,
   List<MediaItem> mediaItems,
@@ -119,5 +126,25 @@ Future concertSongsToMediaItem({
           'code': media.code,
         }));
     //print('MediaItems CONVERTED >: ${_mediaList.toList()}');
+  });
+}
+
+Future concertDownloadToMediaItem({
+  List<Download> downloadList,
+  List<MediaItem> mediaItems,
+}) async {
+  downloadList.forEach((media) async {
+    mediaItems.add(
+      MediaItem(
+          id: media.mediaIdUri,
+          album: media.mediaTitle,
+          title: media.mediaTitle,
+          artist: media.mediaArtist,
+          duration: media.mediaDuration,
+          artUri: media.mediaArtUri,
+          extras: {
+            'code': media.mediaCode,
+          }),
+    );
   });
 }

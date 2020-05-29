@@ -38,7 +38,7 @@ class BuildLatestHotThrowBackItem extends StatelessWidget {
       context,
       listen: false,
     );
-    printEverything(context);
+    //printEverything(context);
     return InkWell(
       onTap: onTap,
       child: Padding(
