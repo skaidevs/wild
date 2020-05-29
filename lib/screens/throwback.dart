@@ -34,30 +34,33 @@ class Throwback extends StatelessWidget {
                 116.0,
               ),
         child: ListView.builder(
-          padding: const EdgeInsets.all(2.0),
-          scrollDirection: Axis.vertical,
-          shrinkWrap: true,
-          physics: ClampingScrollPhysics(),
-          /*separatorBuilder: (context, index) => const Divider(
+            padding: const EdgeInsets.all(2.0),
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            physics: ClampingScrollPhysics(),
+            /*separatorBuilder: (context, index) => const Divider(
                   indent: 90.0,
                   thickness: 0.6,
                   endIndent: 10.0,
                   color: Colors.white30,
                 ),*/
-          itemCount: notifier.throwbackSongList.length,
-          itemBuilder: (context, index) => BuildLatestHotThrowBackItem(
-            song: notifier.throwbackSongList[index],
-            index: index,
-            songType: songTypes[2],
-            onTap: () {
-              playMediaFromButtonPressed(
-                mediaList: notifier.throwbackMediaList,
-                playButton: 'throw_back',
-                playFromId: notifier.throwbackMediaList[index].id,
+            itemCount: notifier.throwbackSongList.length,
+            itemBuilder: (context, index) {
+              final _mediaItem = notifier.throwbackMediaList[index];
+              return BuildLatestHotThrowBackItem(
+                mediaItem: _mediaItem,
+                song: notifier.throwbackSongList[index],
+                index: index,
+                songType: songTypes[2],
+                onTap: () {
+                  playMediaFromButtonPressed(
+                    mediaList: notifier.throwbackMediaList,
+                    playButton: 'throw_back',
+                    playFromId: notifier.throwbackMediaList[index].id,
+                  );
+                },
               );
-            },
-          ),
-        ),
+            }),
       );
     });
   }

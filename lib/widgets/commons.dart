@@ -46,10 +46,13 @@ TextStyle kTextStyle({
   );
 }
 
-FaIcon kMediaIndicator() {
-  return FaIcon(
-    FontAwesomeIcons.volumeUp,
-    color: kColorWSGreen,
+IconButton kMediaIndicator() {
+  return IconButton(
+    onPressed: null,
+    icon: FaIcon(
+      FontAwesomeIcons.volumeUp,
+      color: kColorWSGreen,
+    ),
   );
 }
 

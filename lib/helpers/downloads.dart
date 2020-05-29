@@ -7,12 +7,9 @@ import 'package:path_provider/path_provider.dart';
 
 part 'downloads.g.dart';
 
-// Define tables that can model a database of recipes.
+// Define tables that can model a database of Media.
 
 class Downloads extends Table {
-  @override
-  Set<Column> get primaryKey => {id, mediaCode};
-  //MediaID
   IntColumn get id => integer().autoIncrement()();
   TextColumn get mediaCode => text()();
   TextColumn get mediaIdUri => text()();
@@ -26,57 +23,52 @@ class Downloads extends Table {
 LazyDatabase _openConnection() {
   // the LazyDatabase util lets us find the right location for the file async.
   return LazyDatabase(() async {
-    // put the database file, called db.sqlite here, into the documents folder
-    // for your app.
+    // put the database file, called db.wildStream here, into the documents folder
+    // for the app.
     final dbFolder = await getApplicationDocumentsDirectory();
     final file = File(
-      p.join(dbFolder.path, 'db.sqlite'),
+      p.join(dbFolder.path, 'db.wildStream'),
     );
     return VmDatabase(file);
   });
 }
 
-@UseMoor(
-  tables: [Downloads],
-)
-class Database extends _$Database {
-  Database() : super(_openConnection());
+@UseMoor(tables: [Downloads], daos: [DownloadDao])
+class AppDatabase extends _$AppDatabase {
+  AppDatabase() : super(_openConnection());
 
   @override
   int get schemaVersion => 1;
+}
 
-/*  void addDownloads(MediaItem mediaItem) {
-    int id = Random().nextInt(20000);
-    var _mediaItems = Download(
-      id: id,
-      mediaIdUri: mediaItem.id,
-      mediaArtUri: mediaItem.artUri,
-      mediaTitle: mediaItem.title,
-      mediaAlbum: mediaItem.title,
-      mediaArtist: mediaItem.artist,
-      mediaDuration: mediaItem.duration,
-      mediaCode: mediaItem.extras['code'],
-    );
-    print('myInt ${_mediaItems.id}');
+@UseDao(tables: [Download])
+class DownloadDao extends DatabaseAccessor<AppDatabase>
+    with _$DownloadDaoMixin {
+  final AppDatabase db;
 
-    into(downloads).insert(_mediaItems);
-  }*/
+  DownloadDao(this.db) : super(db);
 
-  Future addDownload(Download download) => into(downloads).insert(download);
+  Future<List<Download>> get allDownloads => select(db.downloads).get();
 
-  void removeDownloads(String code) => (delete(downloads)
+  Stream<List<Download>> watchAllDownloads() {
+    return (select(db.downloads)
+          ..orderBy([
+            (table) =>
+                OrderingTerm(expression: table.id, mode: OrderingMode.desc)
+          ]))
+        .watch();
+  }
+
+  Future insertDownload(Insertable<Download> download) =>
+      into(db.downloads).insert(download);
+  Future removeDownloads(String code) => (delete(db.downloads)
         ..where(
           (media) => media.mediaCode.equals(code),
         ))
       .go();
 
-  // loads all todo entries
-  Future<List<Download>> get allDownloads => select(downloads).get();
-
-  // watches all todo entries in a given category. The stream will automatically
-  // emit new items whenever the underlying data changes.
-  Stream<bool> isDownload(String code) {
-    return (select(downloads)
+  Stream<bool> isDownloaded(String code) {
+    return (select(db.downloads)
           ..where(
             (download) => download.mediaCode.equals(code),
           ))

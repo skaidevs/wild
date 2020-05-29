@@ -506,12 +506,21 @@ class $DownloadsTable extends Downloads
   }
 }
 
-abstract class _$Database extends GeneratedDatabase {
-  _$Database(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
+abstract class _$AppDatabase extends GeneratedDatabase {
+  _$AppDatabase(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
   $DownloadsTable _downloads;
   $DownloadsTable get downloads => _downloads ??= $DownloadsTable(this);
+  DownloadDao _downloadDao;
+  DownloadDao get downloadDao =>
+      _downloadDao ??= DownloadDao(this as AppDatabase);
   @override
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [downloads];
 }
+
+// **************************************************************************
+// DaoGenerator
+// **************************************************************************
+
+mixin _$DownloadDaoMixin on DatabaseAccessor<AppDatabase> {}

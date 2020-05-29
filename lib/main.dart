@@ -54,7 +54,7 @@ class WildStreamApp extends StatelessWidget {
           create: (_) => SearchNotifier(),
           child: Search(),
         ),
-        Provider<Database>(create: (_) => Database()),
+        Provider(create: (_) => AppDatabase().downloadDao),
       ],
       child: MaterialApp(
         key: _mainNavigatorKey,

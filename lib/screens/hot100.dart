@@ -34,30 +34,33 @@ class Hot100 extends StatelessWidget {
                 116.0,
               ),
         child: ListView.builder(
-          padding: const EdgeInsets.all(2.0),
-          scrollDirection: Axis.vertical,
-          shrinkWrap: true,
-          physics: ClampingScrollPhysics(),
-          /*separatorBuilder: (context, index) => const Divider(
+            padding: const EdgeInsets.all(2.0),
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            physics: ClampingScrollPhysics(),
+            /*separatorBuilder: (context, index) => const Divider(
                   indent: 90.0,
                   thickness: 0.6,
                   endIndent: 10.0,
                   color: Colors.white30,
                 ),*/
-          itemCount: notifier.hot100SongList.length,
-          itemBuilder: (context, index) => BuildLatestHotThrowBackItem(
-            song: notifier.hot100SongList[index],
-            index: index,
-            songType: songTypes[1],
-            onTap: () {
-              playMediaFromButtonPressed(
-                mediaList: notifier.hot100MediaList,
-                playButton: 'hot_100',
-                playFromId: notifier.hot100MediaList[index].id,
+            itemCount: notifier.hot100SongList.length,
+            itemBuilder: (context, index) {
+              final _mediaItem = notifier.hot100MediaList[index];
+              return BuildLatestHotThrowBackItem(
+                mediaItem: _mediaItem,
+                song: notifier.hot100SongList[index],
+                index: index,
+                songType: songTypes[1],
+                onTap: () {
+                  playMediaFromButtonPressed(
+                    mediaList: notifier.hot100MediaList,
+                    playButton: 'hot_100',
+                    playFromId: notifier.hot100MediaList[index].id,
+                  );
+                },
               );
-            },
-          ),
-        ),
+            }),
       );
     });
   }

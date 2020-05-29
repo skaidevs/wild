@@ -39,30 +39,33 @@ class Latest extends StatelessWidget {
                 116.0,
               ),
         child: ListView.builder(
-          padding: const EdgeInsets.all(2.0),
-          scrollDirection: Axis.vertical,
-          shrinkWrap: true,
-          physics: ClampingScrollPhysics(),
-          /*separatorBuilder: (context, index) => const Divider(
+            padding: const EdgeInsets.all(2.0),
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            physics: ClampingScrollPhysics(),
+            /*separatorBuilder: (context, index) => const Divider(
             indent: 90.0,
             thickness: 0.6,
             endIndent: 10.0,
             color: Colors.white30,
           ),*/
-          itemCount: notifier.latestSongList.length,
-          itemBuilder: (context, index) => BuildLatestHotThrowBackItem(
-            song: notifier.latestSongList[index],
-            index: index,
-            songType: songTypes[0],
-            onTap: () {
-              playMediaFromButtonPressed(
-                mediaList: notifier.latestMediaList,
-                playButton: 'latest',
-                playFromId: notifier.latestMediaList[index].id,
+            itemCount: notifier.latestSongList.length,
+            itemBuilder: (context, index) {
+              final _mediaItem = notifier.latestMediaList[index];
+              return BuildLatestHotThrowBackItem(
+                mediaItem: _mediaItem,
+                song: notifier.latestSongList[index],
+                index: index,
+                songType: songTypes[0],
+                onTap: () {
+                  playMediaFromButtonPressed(
+                    mediaList: notifier.latestMediaList,
+                    playButton: 'latest',
+                    playFromId: notifier.latestMediaList[index].id,
+                  );
+                },
               );
-            },
-          ),
-        ),
+            }),
       );
     });
   }
