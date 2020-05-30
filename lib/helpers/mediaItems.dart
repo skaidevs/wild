@@ -1,4 +1,6 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:wildstream/helpers/background.dart';
 import 'package:wildstream/helpers/downloads.dart';
@@ -44,6 +46,25 @@ Stream<ScreenState> get screenStateStream =>
         playbackState: playbackState,
       ),
     );
+
+Stream<ScreenState> screenStateStreamWithDoa(BuildContext context) {
+  final _downloadDao = Provider.of<DownloadDao>(
+    context,
+    listen: false,
+  );
+  return Rx.combineLatest2<MediaItem, List<Download>, ScreenState>(
+    AudioService.currentMediaItemStream,
+    _downloadDao.watchAllDownloads,
+    (
+      mediaItem,
+      dao,
+    ) =>
+        ScreenState(
+      mediaItem: mediaItem,
+      downloadDao: dao,
+    ),
+  );
+}
 
 const List<String> songTypes = [
   'latest',

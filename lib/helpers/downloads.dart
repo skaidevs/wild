@@ -51,6 +51,7 @@ class DownloadDao extends DatabaseAccessor<AppDatabase>
   final List<MediaItem> _mediaItems = [];
   UnmodifiableListView<MediaItem> get mediaItems =>
       UnmodifiableListView(_mediaItems);
+  Stream<List<Download>> get watchAllDownloads => _watchAllDownloads();
 
   DownloadDao(this.db) : super(db);
 
@@ -72,7 +73,7 @@ class DownloadDao extends DatabaseAccessor<AppDatabase>
     });
   }
 
-  Stream<List<Download>> watchAllDownloads() {
+  Stream<List<Download>> _watchAllDownloads() {
     convertedMediaItem();
     return (select(db.downloads)
           ..orderBy([

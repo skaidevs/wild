@@ -4,6 +4,7 @@ import 'package:getflutter/shape/gf_avatar_shape.dart';
 import 'package:provider/provider.dart';
 import 'package:wildstream/helpers/downloads.dart';
 import 'package:wildstream/helpers/mediaItems.dart';
+import 'package:wildstream/helpers/screen_state.dart';
 import 'package:wildstream/widgets/commons.dart';
 
 /*class Playlist extends StatelessWidget {
@@ -160,24 +161,29 @@ class Playlist extends StatelessWidget {
     );
   }
 
-  StreamBuilder<List<Download>> _buildDownloadedList(BuildContext context) {
-    final _downloadDao = Provider.of<DownloadDao>(context);
-    return StreamBuilder(
-      stream: _downloadDao.watchAllDownloads(),
-      builder: (context, AsyncSnapshot<List<Download>> snapshot) {
-        final downloads = snapshot.data ?? List();
-
+  StreamBuilder<ScreenState> _buildDownloadedList(BuildContext context) {
+    final _downloadDao = Provider.of<DownloadDao>(
+      context,
+      listen: false,
+    );
+    return StreamBuilder<ScreenState>(
+      stream: screenStateStreamWithDoa(context),
+      builder: (context, snapshot) {
+        final _screenState = snapshot.data;
+        final _downloads = _screenState?.downloadDao ?? List();
+        final _mediaItem = _screenState?.mediaItem?.id;
         return ListView.builder(
-            itemCount: downloads.length,
+            itemCount: _downloads.length,
             padding: const EdgeInsets.all(2.0),
             scrollDirection: Axis.vertical,
             shrinkWrap: true,
             physics: ClampingScrollPhysics(),
             itemBuilder: (_, index) {
-              final _itemDownload = downloads[index];
+              final _itemDownload = _downloads[index];
               return _buildDownloadedItem(
                   downloadDao: _downloadDao,
                   itemDownload: _itemDownload,
+                  mediaId: _mediaItem,
                   onTap: () {
                     playMediaFromButtonPressed(
                       mediaList: _downloadDao.mediaItems,
@@ -190,8 +196,12 @@ class Playlist extends StatelessWidget {
     );
   }
 
-  Widget _buildDownloadedItem(
-      {Download itemDownload, DownloadDao downloadDao, Function onTap}) {
+  Widget _buildDownloadedItem({
+    Download itemDownload,
+    DownloadDao downloadDao,
+    Function onTap,
+    String mediaId,
+  }) {
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -259,25 +269,15 @@ class Playlist extends StatelessWidget {
                 color: Colors.red,
               ),
             ),
-            /*StreamBuilder<ScreenState>(
-              stream: screenStateStream,
-              builder: (context, snapshot) {
-                final screenState = snapshot.data;
-                MediaItem mediaItem;
-                mediaItem = screenState?.mediaItem;
-                if (mediaItem?.id == itemDownload.mediaIdUri) {
-                  return kMediaIndicator();
-                } else {
-                  return IconButton(
+            mediaId == itemDownload.mediaIdUri
+                ? kMediaIndicator()
+                : IconButton(
                     onPressed: () => null,
                     icon: Icon(
                       Icons.more_horiz,
                       color: kColorWSGreen,
                     ),
-                  );
-                }
-              },
-            ),*/
+                  )
           ],
         ),
       ),
