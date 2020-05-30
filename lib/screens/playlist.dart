@@ -167,7 +167,7 @@ class Playlist extends StatelessWidget {
       listen: false,
     );
     return StreamBuilder<ScreenState>(
-      stream: screenStateStreamWithDoa(context),
+      stream: screenStateStreamWithDoa(context: context),
       builder: (context, snapshot) {
         final _screenState = snapshot.data;
         final _downloads = _screenState?.downloadDao ?? List();

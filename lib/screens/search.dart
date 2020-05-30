@@ -1,18 +1,17 @@
 import 'dart:io';
 
-import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/shape/gf_avatar_shape.dart';
 import 'package:provider/provider.dart';
 import 'package:wildstream/helpers/mediaItems.dart';
+import 'package:wildstream/models/search.dart';
 import 'package:wildstream/providers/search.dart';
 import 'package:wildstream/widgets/commons.dart';
 import 'package:wildstream/widgets/loadingInfo.dart';
 
 class Search extends StatelessWidget {
-  final _controller = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,7 +59,6 @@ class Search extends StatelessWidget {
                 116.0,
               ),
         child: Consumer<SearchNotifier>(builder: (context, notifier, _) {
-          MediaItem _mediaItem;
           if (notifier.isLoading) {
             return Center(child: LoadingInfo());
           }
@@ -89,7 +87,8 @@ class Search extends StatelessWidget {
                   shrinkWrap: true,
                   physics: ClampingScrollPhysics(),
                   itemCount: notifier.searchSongList.length,
-                  itemBuilder: (context, index) => InkWell(
+                  itemBuilder: (context, index) => _buildSearchItem(
+                    searchSong: notifier.searchSongList[index],
                     onTap: () {
                       playMediaFromButtonPressed(
                         mediaList: notifier.mediaList,
@@ -97,92 +96,97 @@ class Search extends StatelessWidget {
                       );
                       print('playing from Search id....');
                     },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14.0,
-                        vertical: 14.0,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Flexible(
-                            child: Row(
-                              children: <Widget>[
-                                GFAvatar(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(4.0),
-                                  ),
-                                  shape: GFAvatarShape.standard,
-                                  size: 38.0,
-                                  backgroundImage: NetworkImage(
-                                    notifier.searchSongList[index].songArt.crops
-                                        .crop100,
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 16.0,
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: <Widget>[
-                                      Text(
-                                        '${notifier.searchSongList[index].name}',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      SizedBox(height: 5),
-                                      Text(
-                                        '${notifier.searchSongList[index].artistsToString}',
-                                        style: kTextStyle(
-                                          fontSize: 12.0,
-                                          color: kColorWSGreen,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(
-                            width: 10.0,
-                          ),
-                          if (_mediaItem?.id == notifier.mediaList[index].id)
-                            kMediaIndicator()
-                          else
-                            Icon(
-                              Icons.more_horiz,
-                              color: kColorWSGreen,
-                            ),
-
-                          /*StreamBuilder<ScreenState>(
-                          stream: screenStateStream,
-                          builder: (context, snapshot) {
-                            final screenState = snapshot.data;
-                            MediaItem _mediaItem = screenState?.mediaItem;
-                            if (_mediaItem?.id ==
-                                notifier.mediaList[index].id) {
-                              return kMediaIndicator();
-                            } else {
-                              return Icon(
-                                Icons.more_horiz,
-                                color: kColorWSGreen,
-                              );
-                            }
-                          },
-                        ),*/
-                        ],
-                      ),
-                    ),
                   ),
                 );
         }),
+      ),
+    );
+  }
+
+  Widget _buildSearchItem({
+    Function onTap,
+    Data searchSong,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14.0,
+          vertical: 14.0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Flexible(
+              child: Row(
+                children: <Widget>[
+                  GFAvatar(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(4.0),
+                    ),
+                    shape: GFAvatarShape.standard,
+                    size: 38.0,
+                    backgroundImage: NetworkImage(
+                      searchSong.songArt.crops.crop100,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 16.0,
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          '${searchSong.name}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          '${searchSong.artistsToString}',
+                          style: kTextStyle(
+                            fontSize: 12.0,
+                            color: kColorWSGreen,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              width: 10.0,
+            ),
+            if (searchSong.songFile.songUrl == searchSong.songFile.songUrl)
+              kMediaIndicator()
+            else
+              Icon(
+                Icons.more_horiz,
+                color: kColorWSGreen,
+              ),
+            /*StreamBuilder<ScreenState>(
+              stream: screenStateStream,
+              builder: (context, snapshot) {
+                final screenState = snapshot.data;
+                final _mediaId = screenState?.mediaItem?.id;
+                if (_mediaId == searchSong.songFile.songUrl) {
+                  return kMediaIndicator();
+                } else {
+                  return Icon(
+                    Icons.more_horiz,
+                    color: kColorWSGreen,
+                  );
+                }
+              },
+            ),*/
+          ],
+        ),
       ),
     );
   }
@@ -200,7 +204,7 @@ class FloatAppBar extends StatelessWidget with PreferredSizeWidget {
     return Stack(
       children: <Widget>[
         Positioned(
-          top: preferredSize.height - 6.0,
+          top: preferredSize.height - 14.0,
           right: 15,
           left: 15,
           child: Container(

@@ -47,7 +47,7 @@ Stream<ScreenState> get screenStateStream =>
       ),
     );
 
-Stream<ScreenState> screenStateStreamWithDoa(BuildContext context) {
+Stream<ScreenState> screenStateStreamWithDoa({BuildContext context}) {
   final _downloadDao = Provider.of<DownloadDao>(
     context,
     listen: false,

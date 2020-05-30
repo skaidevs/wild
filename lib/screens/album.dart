@@ -11,7 +11,10 @@ import 'package:wildstream/widgets/loadingInfo.dart';
 class Album extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final _albumNotifier = Provider.of<AlbumNotifier>(context).albumListData;
+    final _albumNotifier = Provider.of<AlbumNotifier>(
+      context,
+      listen: false,
+    ).albumListData;
 
     var size = MediaQuery.of(context).size;
 

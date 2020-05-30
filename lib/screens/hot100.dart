@@ -11,10 +11,7 @@ class Hot100 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print("Hot Build");
-    final _songNotifier = Provider.of<SongsNotifier>(
-      context,
-      listen: false,
-    );
+
     return Consumer<SongsNotifier>(builder: (context, notifier, _) {
       if (notifier.isLoading) {
         return LoadingInfo();

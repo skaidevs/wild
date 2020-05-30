@@ -48,7 +48,7 @@ class WildStreamApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<BottomNavigation>(
           create: (_) => BottomNavigation(),
-          child: WildStreamApp(),
+          child: WildStreamHomePage(),
         ),
         ChangeNotifierProvider<SearchNotifier>(
           create: (_) => SearchNotifier(),
@@ -56,7 +56,7 @@ class WildStreamApp extends StatelessWidget {
         ),
         Provider<DownloadDao>(
           create: (_) => AppDatabase().downloadDao,
-          child: WildStreamApp(),
+          child: WildStreamHomePage(),
           dispose: (context, db) => db.db.close(),
         ),
       ],
