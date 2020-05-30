@@ -1,6 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:moor/moor.dart' as v;
-import 'package:wildstream/helpers/downloads.dart';
+import 'package:wildstream/helpers/downloads_database.dart';
 
 void insertDownloadedMediaItems({
   MediaItem mediaItem,

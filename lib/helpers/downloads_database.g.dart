@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'downloads.dart';
+part of 'downloads_database.dart';
 
 // **************************************************************************
 // MoorGenerator

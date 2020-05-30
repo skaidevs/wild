@@ -8,7 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:wildstream/helpers/mediaItems.dart';
 
-part 'downloads.g.dart';
+part 'downloads_database.g.dart';
 
 // Define tables that can model a database of Media.
 

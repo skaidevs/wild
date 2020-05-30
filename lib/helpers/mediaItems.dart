@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:wildstream/helpers/background.dart';
-import 'package:wildstream/helpers/downloads.dart';
+import 'package:wildstream/helpers/downloads_database.dart';
 import 'package:wildstream/helpers/screen_state.dart';
 import 'package:wildstream/models/album_details.dart';
 import 'package:wildstream/models/song.dart';

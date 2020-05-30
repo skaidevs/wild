@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:wildstream/helpers/background.dart';
-import 'package:wildstream/helpers/downloads.dart';
+import 'package:wildstream/helpers/downloads_database.dart';
 import 'package:wildstream/providers/album.dart';
 import 'package:wildstream/providers/album_detail.dart';
 import 'package:wildstream/providers/bottom_navigator.dart';

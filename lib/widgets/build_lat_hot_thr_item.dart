@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/shape/gf_avatar_shape.dart';
 import 'package:provider/provider.dart';
-import 'package:wildstream/helpers/downloads.dart';
+import 'package:wildstream/helpers/downloads_database.dart';
 import 'package:wildstream/helpers/insert_downloaded_media.dart';
 import 'package:wildstream/helpers/mediaItems.dart';
 import 'package:wildstream/helpers/screen_state.dart';

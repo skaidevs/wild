@@ -1,5 +1,5 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:wildstream/helpers/downloads.dart';
+import 'package:wildstream/helpers/downloads_database.dart';
 
 class ScreenState {
   final List<MediaItem> queue;
