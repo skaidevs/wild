@@ -6,6 +6,7 @@ import 'package:getflutter/components/avatar/gf_avatar.dart';
 import 'package:getflutter/shape/gf_avatar_shape.dart';
 import 'package:provider/provider.dart';
 import 'package:wildstream/helpers/mediaItems.dart';
+import 'package:wildstream/helpers/screen_state.dart';
 import 'package:wildstream/models/search.dart';
 import 'package:wildstream/providers/search.dart';
 import 'package:wildstream/widgets/commons.dart';
@@ -14,6 +15,10 @@ import 'package:wildstream/widgets/loadingInfo.dart';
 class Search extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final _searchNotifier = Provider.of<SearchNotifier>(
+      context,
+      listen: false,
+    );
     return Scaffold(
       backgroundColor: Theme.of(context).backgroundColor,
       appBar: FloatAppBar(),
@@ -70,33 +75,38 @@ class Search extends StatelessWidget {
                       FaIcon(
                         FontAwesomeIcons.search,
                         size: 40.0,
+                        color: Colors.grey,
                       ),
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Text(
                           'SEARCH',
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: Colors.grey),
                         ),
                       ),
                     ],
                   ),
                 )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(2.0),
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  physics: ClampingScrollPhysics(),
-                  itemCount: notifier.searchSongList.length,
-                  itemBuilder: (context, index) => _buildSearchItem(
-                    searchSong: notifier.searchSongList[index],
-                    onTap: () {
-                      playMediaFromButtonPressed(
-                        mediaList: notifier.mediaList,
-                        playFromId: notifier.mediaList[index].id,
-                      );
-                      print('playing from Search id....');
-                    },
-                  ),
+              : ListView(
+                  children: <Widget>[
+                    ListView.builder(
+                      padding: const EdgeInsets.all(2.0),
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      physics: ClampingScrollPhysics(),
+                      itemCount: notifier.searchSongList.length,
+                      itemBuilder: (context, index) => _buildSearchItem(
+                        searchSong: notifier.searchSongList[index],
+                        onTap: () {
+                          playMediaFromButtonPressed(
+                            mediaList: notifier.mediaList,
+                            playFromId: notifier.mediaList[index].id,
+                          );
+                          print('playing from Search id....');
+                        },
+                      ),
+                    ),
+                  ],
                 );
         }),
       ),
@@ -160,17 +170,7 @@ class Search extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(
-              width: 10.0,
-            ),
-            if (searchSong.songFile.songUrl == searchSong.songFile.songUrl)
-              kMediaIndicator()
-            else
-              Icon(
-                Icons.more_horiz,
-                color: kColorWSGreen,
-              ),
-            /*StreamBuilder<ScreenState>(
+            StreamBuilder<ScreenState>(
               stream: screenStateStream,
               builder: (context, snapshot) {
                 final screenState = snapshot.data;
@@ -184,7 +184,7 @@ class Search extends StatelessWidget {
                   );
                 }
               },
-            ),*/
+            ),
           ],
         ),
       ),
@@ -197,14 +197,10 @@ class FloatAppBar extends StatelessWidget with PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _searchNotifier = Provider.of<SearchNotifier>(
-      context,
-      listen: false,
-    );
     return Stack(
       children: <Widget>[
         Positioned(
-          top: preferredSize.height - 14.0,
+          top: preferredSize.height - 12.0,
           right: 15,
           left: 15,
           child: Container(
@@ -217,36 +213,38 @@ class FloatAppBar extends StatelessWidget with PreferredSizeWidget {
             // color: kColorWhite,
             child: Row(
               children: <Widget>[
-                Expanded(
-                  child: TextField(
-                    style: kTextStyle(
-                        color: kColorWSGreen, fontWeight: FontWeight.bold),
-                    /*onChanged: (String value) {
-                    print("Text field: $value");
-                  },*/
-                    controller: _controller,
-                    textInputAction: TextInputAction.search,
-                    onSubmitted: (String searchValue) async {
-                      print("search");
-                      if (searchValue == null || searchValue.length == 0) {
-                        return print('TEXT FIELD IS EMPTY');
-                      }
-                      await _searchNotifier.loadSearchedSongs(
-                        query: searchValue.trim(),
-                      );
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Search WildStream',
-                      hintStyle: TextStyle(
-                        color: Colors.grey,
+                Consumer<SearchNotifier>(builder: (context, notifier, _) {
+                  return Expanded(
+                    child: TextField(
+                      style: kTextStyle(
+                          color: kColorWSGreen, fontWeight: FontWeight.bold),
+                      /*onChanged: (String value) {
+                        print("Text field: $value");
+                     },*/
+                      controller: _controller,
+                      textInputAction: TextInputAction.search,
+                      onSubmitted: (String searchValue) async {
+                        print("search");
+                        if (searchValue == null || searchValue.length == 0) {
+                          return print('TEXT FIELD IS EMPTY');
+                        }
+                        await notifier.loadSearchedSongs(
+                          query: searchValue.trim(),
+                        );
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search WildStream',
+                        hintStyle: TextStyle(
+                          color: Colors.grey,
+                        ),
+                        contentPadding: const EdgeInsets.only(
+                          left: 10.0,
+                        ),
+                        border: InputBorder.none,
                       ),
-                      contentPadding: const EdgeInsets.only(
-                        left: 10.0,
-                      ),
-                      border: InputBorder.none,
                     ),
-                  ),
-                ),
+                  );
+                }),
                 Padding(
                   padding: const EdgeInsets.only(right: 12.0),
                   child: FaIcon(

@@ -13,6 +13,7 @@ class SearchNotifier with ChangeNotifier {
   List<Data> _searchSongList = [];
   UnmodifiableListView<Data> get searchSongList =>
       UnmodifiableListView(_searchSongList);
+
   List<MediaItem> _mediaList = [];
   List<MediaItem> get mediaList {
     return [..._mediaList];
