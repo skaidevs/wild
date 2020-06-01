@@ -45,6 +45,7 @@ class _LatestHot100ThrowbackState extends State<LatestHot100Throwback>
   @override
   void initState() {
     super.initState();
+
     _tabController = TabController(
       length: 3,
       vsync: this,

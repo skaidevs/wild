@@ -42,6 +42,9 @@ dependencies:
   custom_navigator: ^0.3.0
   moor: ^3.1.0
   moor_ffi: ^0.6.0
+  flutter_downloader: ^1.4.4
+  permission_handler: ^4.0.0
+
 
 
 dev_dependencies:

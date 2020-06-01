@@ -1,5 +1,5 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:custom_navigator/custom_navigator.dart';
+import 'package:custom_navigator/custom_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:getflutter/components/avatar/gf_avatar.dart';
@@ -12,19 +12,25 @@ import 'package:wildstream/helpers/mediaItems.dart';
 import 'package:wildstream/helpers/screen_state.dart';
 import 'package:wildstream/providers/bottom_navigator.dart';
 import 'package:wildstream/providers/latest_hot100_throwback.dart';
+import 'package:wildstream/providers/search.dart';
 import 'package:wildstream/screens/album.dart';
 import 'package:wildstream/screens/album_details.dart';
+import 'package:wildstream/screens/latest_hot100_throwback.dart';
 import 'package:wildstream/screens/player.dart';
 import 'package:wildstream/screens/playlist.dart';
 import 'package:wildstream/screens/search.dart';
 import 'package:wildstream/widgets/commons.dart';
 import 'package:wildstream/widgets/loadingInfo.dart';
 
-import 'latest_hot100_throwback.dart';
-
 class WildStreamHomePage extends StatefulWidget {
+  final TargetPlatform platform;
+
   final String title;
-  WildStreamHomePage({Key key, this.title}) : super(key: key);
+  WildStreamHomePage({
+    Key key,
+    this.title,
+    this.platform,
+  }) : super(key: key);
 
   @override
   _WildStreamHomePageState createState() => _WildStreamHomePageState();
@@ -52,9 +58,19 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     }
   }
 
+  void _fetchSearch() {
+    Future.delayed(Duration.zero).then((_) async {
+      Provider.of<SearchNotifier>(
+        context,
+        listen: false,
+      ).loadSearchedSongs(query: 'wizkid');
+    });
+  }
+
   void initState() {
-    connect();
+    _connect();
     WidgetsBinding.instance.addObserver(this);
+
     _pages = [
       {
         'page': LatestHot100Throwback(),
@@ -73,6 +89,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
         'title': 'Playlist',
       },
     ];
+    _fetchSearch();
     super.initState();
   }
 
@@ -91,7 +108,7 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    disconnect();
+    _disconnect();
     _dragPositionSubject.close();
     super.dispose();
   }
@@ -100,12 +117,12 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
-        connect();
+        _connect();
 
         print('AppLifecycleState.resumed called ${state.index}');
         break;
       case AppLifecycleState.paused:
-        disconnect();
+        _disconnect();
         print('AppLifecycleState.paused called ${state.index}');
         break;
       default:
@@ -113,12 +130,12 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
     }
   }
 
-  void connect() async {
+  void _connect() async {
     await AudioService.connect();
     print("AudioService.connect() ");
   }
 
-  void disconnect() {
+  void _disconnect() {
     AudioService.disconnect();
     print("AudioService.disconnect()");
   }
@@ -156,23 +173,16 @@ class _WildStreamHomePageState extends State<WildStreamHomePage>
   @override
   Widget build(BuildContext context) {
     print("BUILD NUMBER ${_buildIndex++}");
-    _bottomNavigation = Provider.of<BottomNavigation>(context);
-    final _notifier = Provider.of<SongsNotifier>(context);
+    _bottomNavigation = Provider.of<BottomNavigation>(
+      context,
+    );
+    final _notifier = Provider.of<SongsNotifier>(
+      context,
+    );
 
     return _notifier.isLoading
-        ? Center(child: LoadingInfo())
+        ? LoadingInfo()
         : Scaffold(
-            /*appBar: _currentIndex == 0
-              ? null
-              : AppBar(
-                  title: Text(
-                    _pages[_bottomNavigation.currentIndex]['title'],
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20.0,
-                    ),
-                  ),
-                ),*/
             backgroundColor: Theme.of(context).backgroundColor,
             body: SlidingUpPanel(
               body: CustomNavigator(

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:wildstream/providers/download.dart';
 
 class Search with ChangeNotifier {
   final String query;
@@ -26,17 +27,18 @@ class Data with ChangeNotifier {
   final String releasedAt;
   final SongFile songFile;
   final SongArt songArt;
+  final TaskInfo downloadTask;
 
-  Data({
-    this.code,
-    this.name,
-    this.shortUrl,
-    this.artistsToString,
-    this.duration,
-    this.releasedAt,
-    this.songFile,
-    this.songArt,
-  });
+  Data(
+      {this.code,
+      this.name,
+      this.shortUrl,
+      this.artistsToString,
+      this.duration,
+      this.releasedAt,
+      this.songFile,
+      this.songArt,
+      this.downloadTask});
 
   factory Data.fromJson(Map<dynamic, dynamic> parsedJson) {
     int calculatedDuration(int duration) {
@@ -54,6 +56,7 @@ class Data with ChangeNotifier {
       releasedAt: parsedJson['released_at'] as String,
       songFile: SongFile.fromJson(parsedJson['file']),
       songArt: SongArt.fromJson(parsedJson['song_art']),
+      downloadTask: TaskInfo(link: '', name: ''),
     );
   }
 }
